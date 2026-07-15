@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🌤️ Weather Dashboard</h1>
+            <div class="search-container">
+                <input type="text" id="searchInput" placeholder="Search city..." class="search-input">
+                <button id="searchBtn" class="search-btn">Search</button>
+                <button id="locationBtn" class="location-btn" title="Use current location">📍</button>
+            </div>
+        </header>
+
+        <main>
+            <!-- Current Weather Section -->
+            <section class="current-weather">
+                <div id="currentWeatherContainer" class="weather-card">
+                    <div class="loading">Loading weather data...</div>
+                </div>
+            </section>
+
+            <!-- Hourly Forecast -->
+            <section class="hourly-forecast">
+                <h2>Hourly Forecast</h2>
+                <div id="hourlyContainer" class="hourly-grid">
+                    <div class="loading">Loading hourly forecast...</div>
+                </div>
+            </section>
+
+            <!-- 7-Day Forecast -->
+            <section class="weekly-forecast">
+                <h2>7-Day Forecast</h2>
+                <div id="weeklyContainer" class="weekly-grid">
+                    <div class="loading">Loading weekly forecast...</div>
+                </div>
+            </section>
+
+            <!-- Weather Details -->
+            <section class="weather-details">
+                <h2>Weather Details</h2>
+                <div id="detailsContainer" class="details-grid">
+                    <div class="loading">Loading details...</div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Error Message -->
+        <div id="errorMessage" class="error-message"></div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

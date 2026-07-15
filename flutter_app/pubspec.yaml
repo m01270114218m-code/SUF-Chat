@@ -1,0 +1,22 @@
+name: voice_chat_app
+description: "Real-time voice chat gaming app with gifting system."
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  socket_io_client: ^2.0.3
+  cupertino_icons: ^1.0.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_linter: ^4.0.0
+
+flutter:
+  uses-material-design: true

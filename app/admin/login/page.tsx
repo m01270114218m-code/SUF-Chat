@@ -1,8 +1,7 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useMemo, useState } from "react";
 import { createBrowserClient } from "@supabase/ssr";
-import { useMemo, useState as useStateAlias } from "react";
 
 export default function AdminLoginPage() {
   const [email, setEmail] = useState("");

@@ -35,7 +35,7 @@ export default function Home(){
   if(error){
    const created=await supabase.auth.signUp({email,password,options:{data:{display_name:email.split("@")[0]}}});
    setNotice(created.error?created.error.message:"تم إنشاء الحساب. أكّد البريد إذا كان التأكيد مطلوبًا.");
-  }else {localStorage.setItem("suf_quick_email",email);localStorage.setItem("suf_quick_password",password);setNotice("تم تسجيل الدخول");}
+  }else {localStorage.setItem("suf_quick_email",email);setNotice("تم تسجيل الدخول");}
   setBusy(false);await load();
  }
  async function phoneAuth(){
@@ -55,13 +55,12 @@ export default function Home(){
   if(error){setNotice(error.message);setBusy(false)}
  }
  async function quickLogin(){
+  const saved=email||localStorage.getItem("suf_quick_email")||"";
+  if(!saved){setNotice("اكتب بريدك أولًا");return}
   setBusy(true);setNotice("");
-  const saved=localStorage.getItem("suf_quick_email");
-  if(!saved){setNotice("سجّل الدخول أولًا ثم فعّل الدخول السريع");setBusy(false);return}
-  const p=localStorage.getItem("suf_quick_password");
-  if(!p){setNotice("انتهت جلسة الدخول السريع؛ سجّل الدخول مرة أخرى");setBusy(false);return}
-  const {error}=await supabase.auth.signInWithPassword({email:saved,password:p});
-  setNotice(error?error.message:"تم الدخول السريع");setBusy(false);await load();
+  const {error}=await supabase.auth.signInWithOtp({email:saved,options:{shouldCreateUser:true,emailRedirectTo:window.location.origin}});
+  setNotice(error?error.message:"تم إرسال رمز/رابط الدخول السريع إلى بريدك");
+  setBusy(false);
  }
  async function createRoom(){
   const {data:{user}}=await supabase.auth.getUser(); if(!user||!roomName.trim())return;
@@ -75,7 +74,7 @@ export default function Home(){
  }
  async function markRead(id:string){await supabase.from("notifications").update({read_at:new Date().toISOString()}).eq("id",id);load()}
  async function signOut(){await supabase.auth.signOut();setProfile(null);setUserId(null)}
- if(!userId)return <main className="auth"><div className="auth-card"><div className="logo">SUF</div><h1>غرف صوتية حقيقية</h1><p>تسجيل، غرف، شات، إشعارات وصوت مباشر.</p><input value={email} onChange={e=>setEmail(e.target.value)} placeholder="البريد الإلكتروني" type="email" autoComplete="email"/><input value={phone} onChange={e=>setPhone(e.target.value)} placeholder="رقم الهاتف +20..." type="tel" autoComplete="tel"/><input value={password} onChange={e=>setPassword(e.target.value)} placeholder="كلمة المرور" type="password" autoComplete="current-password"/><div className="row"><button onClick={auth} disabled={busy}>دخول بالبريد</button><button onClick={phoneAuth} disabled={busy}>دخول بالهاتف</button></div><div className="row"><button onClick={()=>social("google")} disabled={busy}>Google</button><button onClick={()=>social("facebook")} disabled={busy}>Facebook</button></div><button onClick={quickLogin} disabled={busy}>⚡ تسجيل دخول سريع</button>{notice&&<small>{notice}</small>}</div></main>;
+ if(!userId)return <main className="auth"><div className="auth-card"><div className="logo">SUF</div><h1>غرف صوتية حقيقية</h1><p>تسجيل، غرف، شات، إشعارات وصوت مباشر.</p><input value={email} onChange={e=>setEmail(e.target.value)} placeholder="البريد الإلكتروني" type="email" autoComplete="email"/><input value={phone} onChange={e=>setPhone(e.target.value)} placeholder="رقم الهاتف +20..." type="tel" autoComplete="tel"/><input value={password} onChange={e=>setPassword(e.target.value)} placeholder="كلمة المرور" type="password" autoComplete="current-password"/><div className="row"><button onClick={auth} disabled={busy}>دخول بالبريد</button><button onClick={phoneAuth} disabled={busy}>دخول بالهاتف</button></div><div className="row"><button onClick={()=>social("google")} disabled={busy}>Google</button><button onClick={()=>social("facebook")} disabled={busy}>Facebook</button></div><button onClick={quickLogin} disabled={busy}>⚡ تسجيل دخول سريع (رمز)</button>{notice&&<small>{notice}</small>}</div></main>;
 
  return <main className="app">
   <header><div><b>SUF</b><span>{tab==="rooms"?"الغرف الصوتية":tab==="chat"?"الشات":tab==="notifications"?"الإشعارات":"حسابي"}</span></div><div className="header-actions">{tab==="rooms"&&<button onClick={()=>setShowCreate(true)}>＋ غرفة</button>}<button className="icon" onClick={load}>↻</button></div></header>

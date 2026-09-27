@@ -64,7 +64,7 @@ export default function Home(){
  }
  async function createRoom(){
   const {data:{user}}=await supabase.auth.getUser(); if(!user||!roomName.trim())return;
-  const {error}=await supabase.from("rooms").insert({name:roomName.trim(),title:roomTitle.trim()||null,host_id:user.id,max_seats:Math.max(2,Math.min(20,roomSeats)),country:profile?.country||"EG"});
+  const {error}=await supabase.from("rooms").insert({name:roomName.trim(),title:roomTitle.trim()||null,host_id:user.id,max_seats:Math.max(2,Math.min(16,roomSeats)),country:profile?.country||"EG"});
   setNotice(error?.message||"تم إنشاء الغرفة");if(!error){setShowCreate(false);setRoomName("");setRoomTitle("");load()}
  }
  async function sendDM(){
@@ -85,6 +85,6 @@ export default function Home(){
    {tab==="me"&&<div className="panel profile"><div className="avatar">{profile?.avatar_url?<img src={profile.avatar_url} alt=""/>:"👤"}</div><h2>{profile?.display_name||"مستخدم جديد"}</h2><p>VIP {profile?.vip_level??0} · {profile?.country||"EG"}</p><div className="stats"><span>🪙 {profile?.coins??0}<small>عملات</small></span><span>💎 {profile?.diamonds??0}<small>ألماس</small></span></div><button onClick={signOut}>تسجيل الخروج</button></div>}
   </section>
   <nav><button className={tab==="rooms"?"active":""} onClick={()=>setTab("rooms")}>🏠<small>الرئيسية</small></button><button className={tab==="chat"?"active":""} onClick={()=>setTab("chat")}>💬<small>الشات</small></button><button className={tab==="notifications"?"active":""} onClick={()=>setTab("notifications")}>🔔<small>الإشعارات</small></button><button className={tab==="me"?"active":""} onClick={()=>setTab("me")}>👤<small>حسابي</small></button></nav>
-  {showCreate&&<div className="modal"><div className="modal-card"><h2>إنشاء غرفة</h2><input value={roomName} onChange={e=>setRoomName(e.target.value)} placeholder="اسم الغرفة"/><input value={roomTitle} onChange={e=>setRoomTitle(e.target.value)} placeholder="الوصف"/><input value={roomSeats} onChange={e=>setRoomSeats(Number(e.target.value))} type="number" min="2" max="20" placeholder="المقاعد"/><div className="row"><button onClick={createRoom}>إنشاء</button><button onClick={()=>setShowCreate(false)}>إلغاء</button></div></div></div>}
+  {showCreate&&<div className="modal"><div className="modal-card"><h2>إنشاء غرفة</h2><input value={roomName} onChange={e=>setRoomName(e.target.value)} placeholder="اسم الغرفة"/><input value={roomTitle} onChange={e=>setRoomTitle(e.target.value)} placeholder="الوصف"/><input value={roomSeats} onChange={e=>setRoomSeats(Number(e.target.value))} type="number" min="2" max="16" placeholder="المقاعد"/><div className="row"><button onClick={createRoom}>إنشاء</button><button onClick={()=>setShowCreate(false)}>إلغاء</button></div></div></div>}
  </main>;
 }

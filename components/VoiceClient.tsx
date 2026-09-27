@@ -3,7 +3,7 @@
 import { useEffect, useRef } from "react";
 import { supabase } from "@/lib/supabase";
 
-export default function VoiceClient({roomId,userId,enabled}:{roomId:string;userId:string|null;enabled:boolean}){
+export default function VoiceClient({roomId,userId,enabled,muted=false}:{roomId:string;userId:string|null;enabled:boolean;muted?:boolean}){
  const channelRef=useRef<any>(null),streamRef=useRef<any>(null),peersRef=useRef<Record<string,any>>({}),audiosRef=useRef<Record<string,HTMLAudioElement>>({});
  useEffect(()=>{
   if(!enabled||!userId||typeof window==="undefined")return;
@@ -31,6 +31,7 @@ export default function VoiceClient({roomId,userId,enabled}:{roomId:string;userI
    try{
     streamRef.current=await (navigator as any).mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true},video:false});
     if(!active)return;
+    streamRef.current.getAudioTracks().forEach((track:any)=>{track.enabled=!muted});
     const ch=supabase.channel("voice-"+roomId);channelRef.current=ch;
     ch.on("broadcast",{event:"voice"},async({payload}:any)=>{
      if(!payload||payload.from===userId||!payload.to||!(payload.to==="*"||payload.to===userId))return;
@@ -46,6 +47,6 @@ export default function VoiceClient({roomId,userId,enabled}:{roomId:string;userI
   };
   void start();
   return()=>{active=false;if(channelRef.current){supabase.removeChannel(channelRef.current);channelRef.current=null}Object.values(peersRef.current).forEach((p:any)=>p.close());peersRef.current={};Object.values(audiosRef.current).forEach((a)=>{a.pause();a.srcObject=null});audiosRef.current={};streamRef.current?.getTracks().forEach((t:any)=>t.stop());streamRef.current=null};
- },[roomId,userId,enabled]);
+ },[roomId,userId,enabled,muted]);
  return null;
 }

@@ -13,19 +13,22 @@ jobs:
           channel: stable
           flutter-version: "3.35.2"
           cache: true
-      - name: Repair Android project
+      - name: Recreate clean Android project
         working-directory: flutter_app
         run: |
           cp lib/main.dart /tmp/main.dart
           cp pubspec.yaml /tmp/pubspec.yaml
+          rm -rf android
           flutter create . --platforms=android --project-name=pharaoh_party --org=com.pharaohparty
           cp /tmp/main.dart lib/main.dart
           cp /tmp/pubspec.yaml pubspec.yaml
           flutter pub get
-      - name: Build APK
+      - name: Build release APK
         working-directory: flutter_app
         run: flutter build apk --release
-      - uses: actions/upload-artifact@v4
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
         with:
           name: pharaoh-party-release
           path: flutter_app/build/app/outputs/flutter-apk/app-release.apk
+          if-no-files-found: error

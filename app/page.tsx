@@ -22,7 +22,7 @@ export default function Home(){
   const [p,r,ps,n,dm]=await Promise.all([
    supabase.from("profiles").select("id,display_name,avatar_url,country,coins,diamonds,vip_level").eq("id",user.id).maybeSingle(),
    supabase.from("rooms").select("id,name,title,country,cover_url,max_seats,host_id").eq("is_active",true).order("created_at",{ascending:false}).limit(50),
-   supabase.from("public_profiles").select("id,display_name,avatar_url").neq("id",user.id).order("display_name").limit(100),
+   supabase.from("profiles").select("id,display_name,avatar_url").neq("id",user.id).order("display_name").limit(100),
    supabase.from("notifications").select("id,title,body,read_at,created_at").eq("user_id",user.id).order("created_at",{ascending:false}).limit(50),
    supabase.from("direct_messages").select("id,sender_id,receiver_id,message,created_at").or("sender_id.eq."+user.id+",receiver_id.eq."+user.id).order("created_at",{ascending:false}).limit(100)
   ]);

@@ -55,11 +55,17 @@ export default function Home(){
   if(error){setNotice(error.message);setBusy(false)}
  }
  async function quickLogin(){
-  const saved=email||localStorage.getItem("suf_quick_email")||"";
-  if(!saved){setNotice("اكتب بريدك أولًا");return}
   setBusy(true);setNotice("");
-  const {error}=await supabase.auth.signInWithOtp({email:saved,options:{shouldCreateUser:true,emailRedirectTo:window.location.origin}});
-  setNotice(error?error.message:"تم إرسال رمز/رابط الدخول السريع إلى بريدك");
+  const {data,error}=await supabase.auth.signInAnonymously({options:{data:{display_name:"مستخدم سريع"}}});
+  if(error){
+   setNotice(error.message.includes("Anonymous")||error.message.includes("anonymous")
+    ?"الدخول السريع يحتاج تفعيل Anonymous Sign-Ins من إعدادات Supabase: Authentication → Sign In / Providers."
+    :"تعذر إنشاء الحساب السريع: "+error.message);
+  }else if(data.user){
+   setUserId(data.user.id);
+   setNotice("تم إنشاء حسابك السريع وتسجيل الدخول");
+   await load();
+  }
   setBusy(false);
  }
  async function createRoom(){
@@ -74,7 +80,7 @@ export default function Home(){
  }
  async function markRead(id:string){await supabase.from("notifications").update({read_at:new Date().toISOString()}).eq("id",id);load()}
  async function signOut(){await supabase.auth.signOut();setProfile(null);setUserId(null)}
- if(!userId)return <main className="auth"><div className="auth-card"><div className="logo">SUF</div><h1>غرف صوتية حقيقية</h1><p>تسجيل، غرف، شات، إشعارات وصوت مباشر.</p><input value={email} onChange={e=>setEmail(e.target.value)} placeholder="البريد الإلكتروني" type="email" autoComplete="email"/><input value={phone} onChange={e=>setPhone(e.target.value)} placeholder="رقم الهاتف +20..." type="tel" autoComplete="tel"/><input value={password} onChange={e=>setPassword(e.target.value)} placeholder="كلمة المرور" type="password" autoComplete="current-password"/><div className="row"><button onClick={auth} disabled={busy}>دخول بالبريد</button><button onClick={phoneAuth} disabled={busy}>دخول بالهاتف</button></div><div className="row"><button onClick={()=>social("google")} disabled={busy}>Google</button><button onClick={()=>social("facebook")} disabled={busy}>Facebook</button></div><button onClick={quickLogin} disabled={busy}>⚡ تسجيل دخول سريع (رمز)</button>{notice&&<small>{notice}</small>}</div></main>;
+ if(!userId)return <main className="auth"><div className="auth-card"><div className="logo">SUF</div><h1>غرف صوتية حقيقية</h1><p>تسجيل، غرف، شات، إشعارات وصوت مباشر.</p><input value={email} onChange={e=>setEmail(e.target.value)} placeholder="البريد الإلكتروني" type="email" autoComplete="email"/><input value={phone} onChange={e=>setPhone(e.target.value)} placeholder="رقم الهاتف +20..." type="tel" autoComplete="tel"/><input value={password} onChange={e=>setPassword(e.target.value)} placeholder="كلمة المرور" type="password" autoComplete="current-password"/><div className="row"><button onClick={auth} disabled={busy}>دخول بالبريد</button><button onClick={phoneAuth} disabled={busy}>دخول بالهاتف</button></div><div className="row"><button onClick={()=>social("google")} disabled={busy}>Google</button><button onClick={()=>social("facebook")} disabled={busy}>Facebook</button></div><button onClick={quickLogin} disabled={busy}>⚡ إنشاء حساب ودخول سريع</button>{notice&&<small>{notice}</small>}</div></main>;
 
  return <main className="app">
   <header><div><b>SUF</b><span>{tab==="rooms"?"الغرف الصوتية":tab==="chat"?"الشات":tab==="notifications"?"الإشعارات":"حسابي"}</span></div><div className="header-actions">{tab==="rooms"&&<button onClick={()=>setShowCreate(true)}>＋ غرفة</button>}<button className="icon" onClick={load}>↻</button></div></header>

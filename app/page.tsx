@@ -11,7 +11,7 @@ type Note={id:string;title:string;body:string|null;read_at:string|null;created_a
 export default function Home(){
  const [tab,setTab]=useState<"rooms"|"chat"|"notifications"|"me">("rooms");
  const [rooms,setRooms]=useState<Room[]>([]),[profile,setProfile]=useState<Profile|null>(null),[userId,setUserId]=useState<string|null>(null);
- const [email,setEmail]=useState(""),[password,setPassword]=useState(""),[busy,setBusy]=useState(false),[notice,setNotice]=useState("");
+ const [email,setEmail]=useState(""),[password,setPassword]=useState(""),[phone,setPhone]=useState(""),[busy,setBusy]=useState(false),[notice,setNotice]=useState("");
  const [people,setPeople]=useState<Person[]>([]),[to,setTo]=useState(""),[messages,setMessages]=useState<any[]>([]),[message,setMessage]=useState("");
  const [notes,setNotes]=useState<Note[]>([]),[showCreate,setShowCreate]=useState(false),[roomName,setRoomName]=useState(""),[roomTitle,setRoomTitle]=useState(""),[roomSeats,setRoomSeats]=useState(8);
 
@@ -29,12 +29,39 @@ export default function Home(){
   setProfile(p.data as Profile|null);setRooms((r.data??[]) as Room[]);setPeople((ps.data??[]) as Person[]);setNotes((n.data??[]) as Note[]);setMessages((dm.data??[]).reverse());
  }
  async function auth(){
-  if(!email||password.length<6){setNotice("اكتب بريدًا صحيحًا وكلمة مرور 6 أحرف على الأقل");return}
+  if(!email||password.length<6){setNotice("اكتب البريد وكلمة المرور بشكل صحيح");return}
   setBusy(true);setNotice("");
-  const sign=await supabase.auth.signInWithPassword({email,password});
-  if(sign.error){const created=await supabase.auth.signUp({email,password,options:{data:{display_name:email.split("@")[0]}}});setNotice(created.error?created.error.message:"تم إنشاء الحساب. إذا طُلب تأكيد البريد، أكّد الحساب ثم سجّل الدخول.");}
-  else setNotice("تم الدخول");
-  setBusy(false);load();
+  const {error}=await supabase.auth.signInWithPassword({email,password});
+  if(error){
+   const created=await supabase.auth.signUp({email,password,options:{data:{display_name:email.split("@")[0]}}});
+   setNotice(created.error?created.error.message:"تم إنشاء الحساب. أكّد البريد إذا كان التأكيد مطلوبًا.");
+  }else {localStorage.setItem("suf_quick_email",email);localStorage.setItem("suf_quick_password",password);setNotice("تم تسجيل الدخول");}
+  setBusy(false);await load();
+ }
+ async function phoneAuth(){
+  if(!/^\+?[1-9]\d{7,14}$/.test(phone)){setNotice("اكتب رقم الهاتف بصيغة دولية مثل +201xxxxxxxxx");return}
+  if(password.length<6){setNotice("كلمة المرور 6 أحرف على الأقل");return}
+  setBusy(true);setNotice("");
+  const {error}=await supabase.auth.signInWithPassword({phone,password});
+  if(error){
+   const created=await supabase.auth.signUp({phone,password,options:{data:{display_name:phone}}});
+   setNotice(created.error?"تعذر تسجيل الهاتف: "+created.error.message:"تم إنشاء الحساب. أكّد رمز الهاتف إذا طُلب.");
+  }else setNotice("تم تسجيل الدخول");
+  setBusy(false);await load();
+ }
+ async function social(provider:"google"|"facebook"){
+  setBusy(true);setNotice("");
+  const {error}=await supabase.auth.signInWithOAuth({provider,options:{redirectTo:window.location.origin}});
+  if(error){setNotice(error.message);setBusy(false)}
+ }
+ async function quickLogin(){
+  setBusy(true);setNotice("");
+  const saved=localStorage.getItem("suf_quick_email");
+  if(!saved){setNotice("سجّل الدخول أولًا ثم فعّل الدخول السريع");setBusy(false);return}
+  const p=localStorage.getItem("suf_quick_password");
+  if(!p){setNotice("انتهت جلسة الدخول السريع؛ سجّل الدخول مرة أخرى");setBusy(false);return}
+  const {error}=await supabase.auth.signInWithPassword({email:saved,password:p});
+  setNotice(error?error.message:"تم الدخول السريع");setBusy(false);await load();
  }
  async function createRoom(){
   const {data:{user}}=await supabase.auth.getUser(); if(!user||!roomName.trim())return;
@@ -48,7 +75,7 @@ export default function Home(){
  }
  async function markRead(id:string){await supabase.from("notifications").update({read_at:new Date().toISOString()}).eq("id",id);load()}
  async function signOut(){await supabase.auth.signOut();setProfile(null);setUserId(null)}
- if(!userId)return <main className="auth"><div className="auth-card"><div className="logo">SUF</div><h1>غرف صوتية حقيقية</h1><p>تسجيل، غرف، شات، إشعارات وصوت مباشر.</p><input value={email} onChange={e=>setEmail(e.target.value)} placeholder="البريد الإلكتروني" type="email" autoComplete="email"/><input value={password} onChange={e=>setPassword(e.target.value)} placeholder="كلمة المرور" type="password" autoComplete="current-password"/><button onClick={auth} disabled={busy}>{busy?"جاري التنفيذ...":"دخول / إنشاء حساب"}</button>{notice&&<small>{notice}</small>}</div></main>;
+ if(!userId)return <main className="auth"><div className="auth-card"><div className="logo">SUF</div><h1>غرف صوتية حقيقية</h1><p>تسجيل، غرف، شات، إشعارات وصوت مباشر.</p><input value={email} onChange={e=>setEmail(e.target.value)} placeholder="البريد الإلكتروني" type="email" autoComplete="email"/><input value={phone} onChange={e=>setPhone(e.target.value)} placeholder="رقم الهاتف +20..." type="tel" autoComplete="tel"/><input value={password} onChange={e=>setPassword(e.target.value)} placeholder="كلمة المرور" type="password" autoComplete="current-password"/><div className="row"><button onClick={auth} disabled={busy}>دخول بالبريد</button><button onClick={phoneAuth} disabled={busy}>دخول بالهاتف</button></div><div className="row"><button onClick={()=>social("google")} disabled={busy}>Google</button><button onClick={()=>social("facebook")} disabled={busy}>Facebook</button></div><button onClick={quickLogin} disabled={busy}>⚡ تسجيل دخول سريع</button>{notice&&<small>{notice}</small>}</div></main>;
 
  return <main className="app">
   <header><div><b>SUF</b><span>{tab==="rooms"?"الغرف الصوتية":tab==="chat"?"الشات":tab==="notifications"?"الإشعارات":"حسابي"}</span></div><div className="header-actions">{tab==="rooms"&&<button onClick={()=>setShowCreate(true)}>＋ غرفة</button>}<button className="icon" onClick={load}>↻</button></div></header>

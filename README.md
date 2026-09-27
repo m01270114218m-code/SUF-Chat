@@ -1,166 +1,21 @@
-# Voice Chat App - Gaming & Gifting Platform 🎮
+# Campaign Concept Studio
 
-Real-time voice chat app with gaming, gifting, and live broadcasting features.
+Full-stack campaign concept studio using Next.js and the current OpenAI Responses API.
 
-## 📁 Project Structure
+The browser sends campaign fields to POST /api/campaign. Only the server route imports the OpenAI SDK and reads OPENAI_API_KEY, so the key never reaches the client.
 
-```
-voice-chat-app/
-├── backend/                 # Node.js + Socket.io Server
-│   ├── server.js           # Main backend server
-│   ├── package.json        # Node dependencies
-│   └── .gitignore
-│
-├── flutter_app/            # Flutter Mobile Application
-│   ├── lib/
-│   │   ├── main.dart       # Complete UI & Logic
-│   │   └── screens/
-│   ├── pubspec.yaml        # Flutter dependencies
-│   └── android/            # Android build config
-│
-└── README.md
-```
+The server performs Responses API text generation, then Responses API image-generation tool calls. Generated images are returned as base64 data URLs; for production, store assets in object storage and return durable URLs.
 
-## ✨ Features
+Install: npm install, copy .env.example to .env.local, set OPENAI_API_KEY, then run npm run dev. Node.js 20.9+.
 
-✅ **Real-time Voice Chat** - Socket.io powered live communication
-✅ **10-Seat Gaming Layout** - King seat + 9 user seats
-✅ **Gift Distribution System** - 40/20/10/5% split logic
-✅ **Game Integration** - Ludo, Teen Patti, Carrom, Domino
-✅ **Live Broadcast Marquee** - Real-time event notifications
-✅ **User Wallet System** - Gold, Diamonds, Rubies currencies
-✅ **Direct Messaging** - User-to-user communication
-✅ **Block User Feature** - Control interactions
-✅ **Self-Gifting Support** - Users can gift to any seat
-✅ **Room Reward Pool** - Collective earnings tracking
+Environment: OPENAI_API_KEY, OPENAI_TEXT_MODEL=gpt-6-astra, OPENAI_IMAGE_MODEL=gpt-image-2.5-flare.
 
-## 🚀 Quick Start
+Deployment: deploy as a normal Next.js Node application. On Vercel, configure the same server environment variables. Never use NEXT_PUBLIC_OPENAI_API_KEY.
 
-### Backend Setup
+Validation: test empty fields, missing key, normal brief, image-generation failure, and production rate limiting/authentication. Before public launch add authentication, rate limits, usage controls, asset storage and request tracing.
 
-```bash
-cd backend
-npm install
-npm start
-```
+Tune later: text model in OPENAI_TEXT_MODEL; image model in OPENAI_IMAGE_MODEL; prompts and JSON contract in app/api/campaign/route.ts; image size/quality/background in image_generation options; UI in app/globals.css.
 
-Backend runs on `http://localhost:3000`
-
-### Flutter App Setup
-
-```bash
-cd flutter_app
-flutter pub get
-flutter run
-```
-
-## 📱 Build APK
-
-```bash
-cd flutter_app
-flutter build apk --release
-```
-
-**APK Location:** `flutter_app/build/app/outputs/flutter-apk/app-release.apk`
-
-## 🔧 Backend API Endpoints
-
-### Socket.io Events
-
-- **join_room** - User joins a voice chat room
-- **send_gift** - Send gift with automatic distribution
-- **game_win** - Broadcast game victory
-- **lucky_bag** - Lucky bag opened event
-
-### REST API
-
-```
-GET  /                    - Test endpoint
-GET  /api/users           - Get all users
-POST /api/exchange-ruby   - Convert Ruby to Gold (1:1)
-```
-
-## 💰 Gift Distribution Logic
-
-When a user sends a gift worth X coins:
-- **Receiver:** 40% Diamonds + 20% Rubies
-- **Agency:** 10% Diamonds
-- **Room Pool:** 5% Rubies
-- **Platform:** 25% (implicit)
-
-## 🔐 User Wallet
-
-```javascript
-{
-  "name": "King Rahul",
-  "gold": 10000,      // Spending currency
-  "diamonds": 0,      // Premium currency from gifts
-  "rubies": 0         // Exchange currency
-}
-```
-
-## 📚 Room Features
-
-- **King Seat** - Premium position (Seat 1)
-- **User Seats** - Seats 2-10
-- **Live Marquee** - Real-time event broadcasts
-- **Voice Controls** - Mute, Speaker on/off
-- **Message Box** - Live chat in room
-- **Game Launcher** - Play mini-games during stream
-
-## 🎮 Supported Games
-
-1. Ludo Classic
-2. Teen Patti VIP
-3. Carrom Master
-4. Domino King
-
-## 🔄 Data Flow
-
-```
-User Action (Gift Send)
-         ↓
-   Socket.io Event
-         ↓
-   Backend Processing
-         ↓
-   Update User Wallets
-         ↓
-   Broadcast to Room
-         ↓
-   Display in Live Marquee
-```
-
-## 📦 Dependencies
-
-### Backend
-- `express` - Web framework
-- `socket.io` - Real-time communication
-- `cors` - Cross-origin support
-
-### Frontend
-- `flutter` - UI framework
-- `socket_io_client` - Socket.io client for Flutter
-
-## 🚢 Deployment
-
-For production deployment:
-1. Update backend URL in `flutter_app/lib/main.dart`
-2. Deploy backend to cloud (Heroku, AWS, Railway, etc.)
-3. Build release APK
-4. Publish to Google Play Store
-
-## 📝 Development Notes
-
-- Default backend URL: `http://localhost:3000`
-- Update socket URL for production deployments
-- Ensure CORS is properly configured
-- Test WebSocket connectivity before deployment
-
-## 📧 Support
-
-For issues or questions, create a GitHub issue.
-
----
-
-**Happy Coding!** 🚀
+OpenAI model guidance: https://developers.openai.com/api/docs/models
+Text generation: https://developers.openai.com/api/docs/guides/text
+Image generation: https://developers.openai.com/api/docs/guides/tools-image-generation

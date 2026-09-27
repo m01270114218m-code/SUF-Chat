@@ -1,22 +1,17 @@
-name: voice_chat_app
-description: "Real-time voice chat gaming app with gifting system."
-publish_to: 'none'
-
+name: pharaoh_party
+description: "فرعون بارتي - Voice party rooms."
+publish_to: "none"
 version: 1.0.0+1
-
 environment:
-  sdk: '>=3.0.0 <4.0.0'
-
+  sdk: ">=3.3.0 <4.0.0"
 dependencies:
   flutter:
     sdk: flutter
+  cupertino_icons: ^1.0.8
   socket_io_client: ^2.0.3
-  cupertino_icons: ^1.0.2
-
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_linter: ^4.0.0
-
+  flutter_lints: ^4.0.0
 flutter:
   uses-material-design: true

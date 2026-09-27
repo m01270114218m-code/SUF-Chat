@@ -85,7 +85,7 @@ export default function RoomPage(){
   channelRef.current=voice;
   voice.on("broadcast",{event:"voice-signal"},async({payload}:any)=>{
    if(!payload||payload.to!==uid||payload.from===uid)return;
-   const pc=makePeer(payload.from,false);
+   if(payload.kind==="hello"){if(uid&&uid<payload.from)makePeer(payload.from,true);return;}\n   const pc=makePeer(payload.from,false);
    try{
     if(payload.kind==="offer"){await pc.setRemoteDescription(payload.sdp);const answer=await pc.createAnswer();await pc.setLocalDescription(answer);sendSignal({kind:"answer",from:uid,to:payload.from,sdp:pc.localDescription})}
     else if(payload.kind==="answer")await pc.setRemoteDescription(payload.sdp);

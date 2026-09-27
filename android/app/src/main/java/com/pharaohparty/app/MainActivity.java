@@ -3,18 +3,22 @@ package com.pharaohparty.app;
 import android.app.Activity;
 import android.os.Bundle;
 import android.graphics.Color;
+import android.graphics.drawable.GradientDrawable;
 import android.view.Gravity;
-import android.widget.TextView;
+import android.view.View;
+import android.widget.*;
 
 public class MainActivity extends Activity {
-  @Override public void onCreate(Bundle savedInstanceState) {
-    super.onCreate(savedInstanceState);
-    TextView view = new TextView(this);
-    view.setText("Pharaoh Party");
-    view.setTextSize(30);
-    view.setTextColor(Color.WHITE);
-    view.setGravity(Gravity.CENTER);
-    view.setBackgroundColor(Color.rgb(18,18,18));
-    setContentView(view);
-  }
+  private final int BG = Color.rgb(10,10,14), CARD = Color.rgb(24,24,31), GOLD = Color.rgb(226,177,74);
+  private LinearLayout root;
+  private int dp(float v){ return (int)(v * getResources().getDisplayMetrics().density + .5f); }
+  private TextView tv(String s,float size){ TextView t=new TextView(this); t.setText(s); t.setTextColor(Color.WHITE); t.setTextSize(size); return t; }
+  private GradientDrawable bg(int c,float r){ GradientDrawable g=new GradientDrawable(); g.setColor(c); g.setCornerRadius(dp(r)); return g; }
+  @Override public void onCreate(Bundle b){ super.onCreate(b); home(); }
+  private void base(){ root=new LinearLayout(this); root.setOrientation(LinearLayout.VERTICAL); root.setPadding(dp(14),dp(16),dp(14),0); root.setBackgroundColor(BG); setContentView(root); }
+  private void addNav(){ LinearLayout nav=new LinearLayout(this); String[] a={"الرئيسية","الغرف","المتجر","الملف"}; for(String s:a){ TextView n=tv(s,14); n.setGravity(Gravity.CENTER); nav.addView(n,new LinearLayout.LayoutParams(0,dp(58),1)); if(s.equals("الرئيسية"))n.setOnClickListener(v->home()); if(s.equals("الغرف"))n.setOnClickListener(v->room(0)); if(s.equals("المتجر"))n.setOnClickListener(v->store()); if(s.equals("الملف"))n.setOnClickListener(v->profile()); } root.addView(nav); }
+  private void home(){ base(); TextView h=tv("♛  Pharaoh Party                         🪙 12,500",20); h.setTextColor(GOLD); root.addView(h,new LinearLayout.LayoutParams(-1,dp(58))); TextView sub=tv("الغرف الصوتية المباشرة",19); sub.setTextColor(GOLD); root.addView(sub,new LinearLayout.LayoutParams(-1,dp(46))); LinearLayout list=new LinearLayout(this); list.setOrientation(LinearLayout.VERTICAL); root.addView(list,new LinearLayout.LayoutParams(-1,0,1)); String[] rooms={"🔥 العرب الملكي","👑 Pharaoh VIP","🎤 أصحاب السهرة","💎 Lounge Party"}; for(int i=0;i<4;i++){ TextView r=tv(rooms[i]+"\n🟢 "+(18+i*7)+" متصل   •   ID #10"+(i+1),16); r.setPadding(dp(16),0,dp(8),0); r.setGravity(Gravity.CENTER_VERTICAL); r.setBackground(bg(CARD,18)); LinearLayout.LayoutParams p=new LinearLayout.LayoutParams(-1,dp(105)); p.setMargins(0,dp(5),0,dp(5)); list.addView(r,p); final int id=i; r.setOnClickListener(v->room(id)); } addNav(); }
+  private void room(int id){ base(); TextView back=tv("‹  غرفة "+(id+1)+"                         🪙 12,500",19); back.setTextColor(GOLD); back.setOnClickListener(v->home()); root.addView(back,new LinearLayout.LayoutParams(-1,dp(58))); TextView hint=tv("🎙️ غرفة صوتية مباشرة\nاضغط على المقعد للصعود أو النزول من المايك",15); hint.setPadding(dp(8),0,0,0); root.addView(hint,new LinearLayout.LayoutParams(-1,dp(76))); LinearLayout seats=new LinearLayout(this); seats.setOrientation(LinearLayout.VERTICAL); root.addView(seats,new LinearLayout.LayoutParams(-1,0,1)); for(int r=0;r<2;r++){ LinearLayout row=new LinearLayout(this); for(int c=0;c<4;c++){ TextView seat=tv("🎤\n"+(r*4+c+1),15); seat.setGravity(Gravity.CENTER); seat.setBackground(bg(CARD,30)); LinearLayout.LayoutParams p=new LinearLayout.LayoutParams(0,dp(115),1); p.setMargins(dp(4),dp(4),dp(4),dp(4)); row.addView(seat,p); } seats.addView(row,new LinearLayout.LayoutParams(-1,0,1)); } Button gift=new Button(this); gift.setText("🎁  إرسال هدية"); gift.setOnClickListener(v->Toast.makeText(this,"الهدايا جاهزة للربط ببيانات Supabase",Toast.LENGTH_SHORT).show()); root.addView(gift,new LinearLayout.LayoutParams(-1,dp(56))); }
+  private void store(){ base(); TextView h=tv("‹  المتجر",21); h.setTextColor(GOLD); h.setOnClickListener(v->home()); root.addView(h,new LinearLayout.LayoutParams(-1,dp(58))); String[] items={"👑 VIP","💠 إطار 3D شفاف","🎤 مايك 3D ذهبي","✨ إطار متحرك"}; for(String s:items){ TextView x=tv(s+"\nاضغط للشراء",17); x.setPadding(dp(16),0,0,0); x.setGravity(Gravity.CENTER_VERTICAL); x.setBackground(bg(CARD,18)); LinearLayout.LayoutParams p=new LinearLayout.LayoutParams(-1,dp(88)); p.setMargins(0,dp(5),0,dp(5)); root.addView(x,p); } addNav(); }
+  private void profile(){ base(); TextView h=tv("‹  الملف الشخصي",21); h.setTextColor(GOLD); h.setOnClickListener(v->home()); root.addView(h,new LinearLayout.LayoutParams(-1,dp(58))); TextView p=tv("👤\nالمستخدم\nID: 100001\nVIP • المستوى 12\n\n🖼️ الإطار الشفاف 3D يظهر حول الصورة وفي الغرفة",18); p.setGravity(Gravity.CENTER); p.setBackground(bg(CARD,24)); root.addView(p,new LinearLayout.LayoutParams(-1,dp(310))); TextView login=tv("تسجيل الدخول الحقيقي\nGoogle • Facebook • البريد الإلكتروني • الهاتف",15); login.setGravity(Gravity.CENTER); root.addView(login,new LinearLayout.LayoutParams(-1,dp(100))); addNav(); }
 }

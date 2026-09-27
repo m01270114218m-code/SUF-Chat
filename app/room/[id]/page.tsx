@@ -19,12 +19,12 @@ export default function RoomPage(){
  async function refresh(){
   const [r,s,m,g,u]=await Promise.all([
    supabase.from("rooms").select("*").eq("id",id).maybeSingle(),
-   supabase.from("room_seats").select("seat_no,user_id,is_muted,locked,profiles(display_name,avatar_url)").eq("room_id",id).order("seat_no"),
+   supabase.from("room_seats").select("seat_no,user_id,is_muted,locked").eq("room_id",id).order("seat_no"),
    supabase.from("room_messages").select("id,message,created_at,profiles(display_name)").eq("room_id",id).order("created_at",{ascending:true}).limit(100),
    supabase.from("gifts").select("id,name,icon,price_coins").eq("enabled",true).order("sort_order"),
    supabase.auth.getUser()
   ]);
-  setRoom(r.data);setSeats((s.data??[]) as Seat[]);setMessages((m.data??[]) as Message[]);setGifts((g.data??[]) as Gift[]);setUid(u.data.user?.id??null);
+  setRoom(r.data);\n  const rawSeats=(s.data??[]) as Seat[];\n  const ids=rawSeats.map(x=>x.user_id).filter(Boolean) as string[];\n  let profileMap:Record<string,{display_name:string;avatar_url:string|null}>={};\n  if(ids.length){const pr=await supabase.from("public_profiles").select("id,display_name,avatar_url").in("id",ids);for(const p of pr.data??[])profileMap[p.id]=p;}\n  setSeats(rawSeats.map(x=>({...x,profiles:x.user_id?profileMap[x.user_id]:null})));setMessages((m.data??[]) as Message[]);setGifts((g.data??[]) as Gift[]);setUid(u.data.user?.id??null);
   if(u.data.user) setJoined((s.data??[]).some((x:any)=>x.user_id===u.data.user.id));
  }
  async function join(){

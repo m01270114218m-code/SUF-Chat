@@ -1,6 +1,8 @@
 name: Replace repository from bundled ZIP
 
 on:
+  push:
+    branches: [main]
   workflow_dispatch:
 
 permissions:
@@ -8,6 +10,7 @@ permissions:
 
 jobs:
   replace:
+    if: ${{ github.event_name == 'workflow_dispatch' || !contains(github.event.head_commit.message, 'Replace project with recovered new project') }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -31,7 +34,7 @@ jobs:
           else
             SRC="/tmp/new-project"
           fi
-          rm -rf -- ./* ./.??* 2>/dev/null || true
+          find . -mindepth 1 -maxdepth 1 ! -name .git -exec rm -rf -- {} +
           cp -a "$SRC"/. .
           rm -f "$ZIP"
           rm -rf /tmp/new-project

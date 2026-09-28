@@ -1,20 +1,15 @@
-# Backend
-backend/node_modules/
-backend/.env
-backend/*.log
+# v0 sandbox internal files
+__v0_runtime_loader.js
+__v0_devtools.tsx
+__v0_jsx-dev-runtime.ts
+.snowflake/
+.v0-trash/
+.vercel/
 
-# Flutter
-flutter_app/build/
-flutter_app/.dart_tool/
-flutter_app/.flutter-plugins
-flutter_app/.flutter-plugins-dependencies
-flutter_app/.packages
-flutter_app/pubspec.lock
-flutter_app/.idea/
-flutter_app/*.iml
+# Environment variables
+.env*.local
 
-# General
+# Common ignores
+node_modules
+.next/
 .DS_Store
-*.swp
-*.swo
-*~

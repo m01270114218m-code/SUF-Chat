@@ -1,0 +1,270 @@
+{
+  "themeConfig": {
+    "themeId": "unified_main_lavender_pearl_and_transparent_7d_rooms",
+    "themeName": "Unified Main Interfaces Soft Lavender-Pearl & Transparent 7D Animated Voice Rooms",
+    "appGlobalStyle": "UNIFIED_MAIN_INTERFACES_LAVENDER_PEARL",
+    "voiceRoomStyle": "ANIMATED_TRANSPARENT_7D_GLASSMORPHISM",
+    "mainScreenBgHex": "#F6F6F9",
+    "headerTopAuraStartHex": "#EDE4FF",
+    "headerTopAuraMidHex": "#F5EEFF",
+    "cardSurfaceHex": "#FFFFFF",
+    "textPrimaryHex": "#1C1C28",
+    "textSecondaryHex": "#6B7280",
+    "royalPurpleHex": "#9333EA",
+    "royalMagentaHex": "#EC4899",
+    "goldLightHex": "#FFF3A8",
+    "goldPrimaryHex": "#FFD700",
+    "goldDeepHex": "#9E6B0E",
+    "crystalBlueHex": "#00E5FF",
+    "crystalDeepBlueHex": "#0055B3",
+    "emeraldGreenHex": "#10B981",
+    "buttonCornerRadiusDp": 24,
+    "cardCornerRadiusDp": 18,
+    "borderThicknessDp": 1.2,
+    "enable7DParticles": true,
+    "enableSvgaOverlays": true,
+    "enable4KVectorAssets": true,
+    "systemNotificationsStyle": {
+      "position": "BOTTOM_CENTER",
+      "size": "SMALL_COMPACT_PILL",
+      "isTransparent": true,
+      "isColoredGradient": true,
+      "gradientColorsHex": ["#BF2E1065", "#BF7E22CE", "#BFBE185D"],
+      "borderColorsHex": ["#AAFFD700", "#AA38BDF8", "#AAEC4899"],
+      "showOnScreenInsideVoiceRoom": false,
+      "inRoomEventsTarget": "BOTTOM_TRANSLUCENT_CHAT_STREAM_ONLY"
+    }
+  },
+  "voiceRoomControlsPolicy": {
+    "showStoreRedirectButtonInRoom": false,
+    "showGamesButtonInRoom": false,
+    "enablePkBattleModeInRoom": false,
+    "enableAnimatedTransparentThemeSelector": true,
+    "enableTenSeatsLayout": true,
+    "enableBottomColoredTranslucentChat": true
+  },
+  "roomBackgroundThemesTable": [
+    {
+      "themeId": "PALACE_NIGHT",
+      "storeItemId": "store_room_theme_1",
+      "titleAr": "ليالي الهلال الملكي المتحركة",
+      "subtitleAr": "خلفية شفافة عالية الجودة مع هلال ذهبي ونجوم متلألئة متحركة",
+      "iconEmoji": "🌙",
+      "priceCoins": 0,
+      "isFreeDefault": true,
+      "isAnimated": true,
+      "isTransparentGlass": true,
+      "topHex": "#0A0E1A",
+      "midHex": "#0D1324",
+      "bottomHex": "#11182E",
+      "accentGlowHex": "#FFE082",
+      "secondaryGlowHex": "#38BDF8"
+    },
+    {
+      "themeId": "TRANSPARENT_AURORA",
+      "storeItemId": "store_room_theme_2",
+      "titleAr": "أورورا الكريستال الشفافة",
+      "subtitleAr": "موجات أورورا شفافة متحركة عالية الدقة مع جزيئات ضوئية عائمة",
+      "iconEmoji": "🌌",
+      "priceCoins": 18000,
+      "isFreeDefault": false,
+      "isAnimated": true,
+      "isTransparentGlass": true,
+      "topHex": "#07162C",
+      "midHex": "#0F2942",
+      "bottomHex": "#1B1438",
+      "accentGlowHex": "#38BDF8",
+      "secondaryGlowHex": "#A855F7"
+    },
+    {
+      "themeId": "ROYAL_GOLD_PALACE",
+      "storeItemId": "store_room_theme_3",
+      "titleAr": "قصر الذهب الإمبراطوري الشفاف",
+      "subtitleAr": "ثيم شفاف فاخر بذرات الذهب المتطايرة وإضاءة القصر الملكي",
+      "iconEmoji": "👑",
+      "priceCoins": 35000,
+      "isFreeDefault": false,
+      "isAnimated": true,
+      "isTransparentGlass": true,
+      "topHex": "#1B1105",
+      "midHex": "#2A1B08",
+      "bottomHex": "#140D04",
+      "accentGlowHex": "#FFD700",
+      "secondaryGlowHex": "#F59E0B"
+    },
+    {
+      "themeId": "SAPPHIRE_STARLIGHT",
+      "storeItemId": "store_room_theme_4",
+      "titleAr": "سماء الياقوت الأزرق الشفافة",
+      "subtitleAr": "سديم ياقوتي شفاف عالي الجودة مع شهب ونجوم متحركة",
+      "iconEmoji": "💎",
+      "priceCoins": 25000,
+      "isFreeDefault": false,
+      "isAnimated": true,
+      "isTransparentGlass": true,
+      "topHex": "#041028",
+      "midHex": "#0A224E",
+      "bottomHex": "#061534",
+      "accentGlowHex": "#00E5FF",
+      "secondaryGlowHex": "#3B82F6"
+    },
+    {
+      "themeId": "EMERALD_CRYSTAL",
+      "storeItemId": "store_room_theme_5",
+      "titleAr": "واحة الزمرد الشفافة المتحركة",
+      "subtitleAr": "إضاءة زمردية كريستالية شفافة وموجات ضوئية هادئة",
+      "iconEmoji": "💚",
+      "priceCoins": 22000,
+      "isFreeDefault": false,
+      "isAnimated": true,
+      "isTransparentGlass": true,
+      "topHex": "#041E19",
+      "midHex": "#08362C",
+      "bottomHex": "#05221C",
+      "accentGlowHex": "#10B981",
+      "secondaryGlowHex": "#34D399"
+    },
+    {
+      "themeId": "ROSE_VELVET_GALAXY",
+      "storeItemId": "store_room_theme_6",
+      "titleAr": "مجرة الورد الملكي الشفافة",
+      "subtitleAr": "مجرة مخملية وردية شفافة مع نجوم مضيئة عالية الدقة",
+      "iconEmoji": "🌸",
+      "priceCoins": 28000,
+      "isFreeDefault": false,
+      "isAnimated": true,
+      "isTransparentGlass": true,
+      "topHex": "#21071C",
+      "midHex": "#380D30",
+      "bottomHex": "#1B0518",
+      "accentGlowHex": "#F472B6",
+      "secondaryGlowHex": "#C084FC"
+    }
+  ],
+  "automaticRoomPermissionsPolicy": {
+    "resolutionMode": "AUTOMATIC_BY_USER_DISPLAY_ID_AND_IN_ROOM_ROLE_BAR",
+    "accountCardOnUserTap": {
+      "enabledOnMicSeatTap": true,
+      "enabledOnChatMessageTap": true,
+      "showsTargetUserDetails": ["NICKNAME", "DISPLAY_ID", "AVATAR", "FRAME_3D", "ROLE_BADGE", "MIC_STATUS", "GIFT_COUNTER"]
+    },
+    "roles": {
+      "MEMBER": {
+        "titleAr": "مستخدم في الغرفة",
+        "badgeEmoji": "🎙️",
+        "badgeHex": "#38BDF8",
+        "permissions": [
+          "TAKE_EMPTY_MIC",
+          "LEAVE_OWN_MIC",
+          "SEND_GIFT",
+          "WRITE_IN_CHAT",
+          "TAP_USER_VIEW_ACCOUNT_DATA",
+          "FOLLOW_USER",
+          "ENTER_USER_PROFILE",
+          "SEND_GIFT_FROM_USER_CARD"
+        ]
+      },
+      "ADMIN": {
+        "titleAr": "أدمن الغرفة",
+        "badgeEmoji": "🛡️",
+        "badgeHex": "#10B981",
+        "permissions": [
+          "TAKE_EMPTY_MIC",
+          "LEAVE_OWN_MIC",
+          "SEND_GIFT",
+          "WRITE_IN_CHAT",
+          "TAP_USER_VIEW_ACCOUNT_DATA",
+          "FOLLOW_USER",
+          "ENTER_USER_PROFILE",
+          "SEND_GIFT_FROM_USER_CARD",
+          "LOCK_OR_UNLOCK_MIC",
+          "KICK_USER_FROM_MIC",
+          "MUTE_OR_UNMUTE_USER_ON_MIC"
+        ]
+      },
+      "OWNER": {
+        "titleAr": "صاحب الغرفة",
+        "badgeEmoji": "👑",
+        "badgeHex": "#FFD700",
+        "permissions": [
+          "TAKE_EMPTY_MIC",
+          "LEAVE_OWN_MIC",
+          "SEND_GIFT",
+          "WRITE_IN_CHAT",
+          "TAP_USER_VIEW_ACCOUNT_DATA",
+          "FOLLOW_USER",
+          "ENTER_USER_PROFILE",
+          "SEND_GIFT_FROM_USER_CARD",
+          "LOCK_OR_UNLOCK_MIC",
+          "KICK_USER_FROM_MIC",
+          "MUTE_OR_UNMUTE_USER_ON_MIC",
+          "ASSIGN_OR_REVOKE_ADMIN",
+          "BAN_USER_FROM_ROOM",
+          "EDIT_ROOM_NAME_AND_ANNOUNCEMENT",
+          "CHANGE_ROOM_COVER_PHOTO",
+          "SELECT_OR_PURCHASE_ROOM_BACKGROUND_THEME",
+          "RESET_MIC_COUNTERS"
+        ]
+      }
+    }
+  },
+  "buttonsAndIconsRegistryTable": [
+    { "elementId": "nav_tab_home", "screen": "MAIN_BOTTOM_BAR", "labelAr": "الرئيسية", "iconType": "CUSTOM_3D_CANVAS_HOUSE", "targetRoute": "HOME", "isVisible": true },
+    { "elementId": "nav_tab_discover", "screen": "MAIN_BOTTOM_BAR", "labelAr": "اكتشف", "iconType": "CUSTOM_3D_CANVAS_PLANET", "targetRoute": "DISCOVER", "isVisible": true },
+    { "elementId": "nav_tab_messages", "screen": "MAIN_BOTTOM_BAR", "labelAr": "الرسائل", "iconType": "CUSTOM_3D_CANVAS_CHAT", "targetRoute": "MESSAGES", "isVisible": true },
+    { "elementId": "nav_tab_profile", "screen": "MAIN_BOTTOM_BAR", "labelAr": "حسابي", "iconType": "CUSTOM_3D_CANVAS_USER", "targetRoute": "PROFILE", "isVisible": true },
+    { "elementId": "room_header_info_pill", "screen": "AUDIO_ROOM", "labelAr": "بيانات الغرفة والمتابعة", "iconType": "ROOM_COVER_AND_PLUS", "targetRoute": "EDIT_ROOM_OR_FOLLOW", "isVisible": true },
+    { "elementId": "open_room_theme_selector_pill", "screen": "AUDIO_ROOM", "labelAr": "ثيم الخلفية المتحركة", "iconType": "THEME_EMOJI_PILL", "targetRoute": "ROOM_THEME_SELECTOR_MODAL", "isVisible": true },
+    { "elementId": "room_bottom_gift_btn", "screen": "AUDIO_ROOM", "labelAr": "إرسال هدية", "iconType": "PINK_GIFT_BOX_CIRCLE", "targetRoute": "GIFT_CATALOG_SHEET", "isVisible": true },
+    { "elementId": "room_bottom_mic_toggle_btn", "screen": "AUDIO_ROOM", "labelAr": "كتم/فتح المايك", "iconType": "TRANSLUCENT_MIC_CIRCLE", "targetRoute": "TOGGLE_MY_MIC", "isVisible": true },
+    { "elementId": "room_bottom_tools_btn", "screen": "AUDIO_ROOM", "labelAr": "أدوات الغرفة", "iconType": "GRID_VIEW_CIRCLE", "targetRoute": "TOOLS_SHEET", "isVisible": true },
+    { "elementId": "room_bottom_chat_pill", "screen": "AUDIO_ROOM", "labelAr": "تحدث في الشات", "iconType": "CHAT_BUBBLE_OUTLINE", "targetRoute": "CHAT_INPUT_DIALOG", "isVisible": true },
+    { "elementId": "room_store_redirect_btn", "screen": "AUDIO_ROOM", "labelAr": "زر المتجر داخل الغرفة", "iconType": "NONE", "targetRoute": "DISABLED", "isVisible": false },
+    { "elementId": "room_games_btn", "screen": "AUDIO_ROOM", "labelAr": "زر الألعاب داخل الغرفة", "iconType": "NONE", "targetRoute": "DISABLED", "isVisible": false },
+    { "elementId": "room_pk_battle_btn", "screen": "AUDIO_ROOM", "labelAr": "وضع PK داخل الغرفة", "iconType": "NONE", "targetRoute": "DISABLED", "isVisible": false }
+  ],
+  "agencyPortalPolicy": {
+    "defaultVisibleInApp": false,
+    "activationSource": "SERVER_AND_DATABASE_ONLY_BY_USER_ID",
+    "hostAgencyCenterFlag": "isHostAgent",
+    "hostPersonalDataFlag": "isApprovedHost",
+    "chargeAgencyCenterFlag": "isChargeAgent",
+    "descriptionAr": "مركز الوكالات وبيانات المضيف ووكالة الشحن مخفية تماماً من التطبيق افتراضياً لجميع المستخدمين، ولا تظهر إلا لمن يتم منحه الصلاحية عبر المعرف الخاص (ID) من واجهة قاعدة البيانات أو السيرفر."
+  },
+  "featureVisibilityControlTable": [
+    { "featureKey": "tab_home_rooms", "category": "PRIMARY_TAB", "titleAr": "الرئيسية وغرف الدردشة الصوتية", "isVisibleInApp": true, "isEnabledForUse": true, "requiresDatabaseRole": false },
+    { "featureKey": "tab_discover_moments", "category": "PRIMARY_TAB", "titleAr": "اكتشف واللحظات اليومية", "isVisibleInApp": true, "isEnabledForUse": true, "requiresDatabaseRole": false },
+    { "featureKey": "tab_messages_chat", "category": "PRIMARY_TAB", "titleAr": "الرسائل والدردشة الخاصة", "isVisibleInApp": true, "isEnabledForUse": true, "requiresDatabaseRole": false },
+    { "featureKey": "tab_my_profile", "category": "PRIMARY_TAB", "titleAr": "ملفي الشخصي", "isVisibleInApp": true, "isEnabledForUse": true, "requiresDatabaseRole": false },
+    { "featureKey": "screen_royal_store", "category": "STANDALONE_SCREEN", "titleAr": "المتجر الملكي (الإطارات • الدخوليات • ثيمات الغرف الشفافة • الآي دي المميز)", "isVisibleInApp": true, "isEnabledForUse": true, "requiresDatabaseRole": false },
+    { "featureKey": "screen_my_accessories", "category": "STANDALONE_SCREEN", "titleAr": "إكسسواراتي (الإطارات • الدخوليات • ثيمات الغرف • الفقاعات المملوكة)", "isVisibleInApp": true, "isEnabledForUse": true, "requiresDatabaseRole": false },
+    { "featureKey": "screen_vip_5_sections", "category": "STANDALONE_SCREEN", "titleAr": "الـ VIP (5 أقسام قابلة للضبط من قاعدة البيانات)", "isVisibleInApp": true, "isEnabledForUse": true, "requiresDatabaseRole": false },
+    { "featureKey": "screen_host_agency_center", "category": "AGENCY_PORTAL", "titleAr": "مركز وكالتي (لوكيل المضيفين فقط بعد التفعيل من قاعدة البيانات)", "isVisibleInApp": true, "isEnabledForUse": true, "requiresDatabaseRole": true, "requiredFlag": "isHostAgent" },
+    { "featureKey": "screen_host_personal_data", "category": "AGENCY_PORTAL", "titleAr": "بيانات المضيف الرسمية (للمضيف فقط بعد التفعيل من قاعدة البيانات)", "isVisibleInApp": true, "isEnabledForUse": true, "requiresDatabaseRole": true, "requiredFlag": "isApprovedHost" },
+    { "featureKey": "screen_charge_agency_center", "category": "AGENCY_PORTAL", "titleAr": "مركز وكالة الشحن (لوكيل الشحن فقط بعد التفعيل من قاعدة البيانات)", "isVisibleInApp": true, "isEnabledForUse": true, "requiresDatabaseRole": true, "requiredFlag": "isChargeAgent" }
+  ],
+  "rolesCatalog": [
+    { "code": "SUPER_ADMIN", "titleAr": "سوبر أدمن", "badgeHex": "#FF1744", "priority": 100 },
+    { "code": "ADMIN", "titleAr": "أدمن", "badgeHex": "#FF9100", "priority": 80 },
+    { "code": "MANAGER", "titleAr": "مدير", "badgeHex": "#E040FB", "priority": 70 },
+    { "code": "BD", "titleAr": "بدي BD", "badgeHex": "#00E5FF", "priority": 60 },
+    { "code": "CHARGE_AGENT", "titleAr": "وكيل شحن", "badgeHex": "#FFD700", "priority": 50 },
+    { "code": "HOST_AGENT", "titleAr": "وكيل مضيفين", "badgeHex": "#00E676", "priority": 45 },
+    { "code": "HOST", "titleAr": "مضيف", "badgeHex": "#FF4081", "priority": 30 },
+    { "code": "SUPPORTER", "titleAr": "داعم ملكي", "badgeHex": "#FFD700", "priority": 20 }
+  ],
+  "specialIdsCatalog": [
+    { "specialId": "7777777", "tier": "7D_EMPEROR", "priceCoins": 150000 },
+    { "specialId": "8888888", "tier": "7D_ROYAL_CROWN", "priceCoins": 120000 },
+    { "specialId": "9999999", "tier": "5D_DIAMOND", "priceCoins": 95000 },
+    { "specialId": "1111111", "tier": "ELITE_CROWN", "priceCoins": 110000 },
+    { "specialId": "1201637", "tier": "ROYAL_GOLD", "priceCoins": 50000 }
+  ],
+  "entryWelcomesCatalog": [
+    { "id": "store_mount_1", "nameAr": "تنين الإمبراطور الذهبي 7D", "priceCoins": 80000, "vipRequired": 5 },
+    { "id": "store_mount_2", "nameAr": "أسطول بوغاتي النيون الملكي 6D", "priceCoins": 55000, "vipRequired": 3 },
+    { "id": "store_mount_3", "nameAr": "عنقاء الكريستال المتوهجة 7D", "priceCoins": 95000, "vipRequired": 4 },
+    { "id": "store_mount_4", "nameAr": "اليخت الملكي الفاخر 6D", "priceCoins": 68000, "vipRequired": 2 },
+    { "id": "store_mount_5", "nameAr": "الحصان المجنح الأسطوري 5D", "priceCoins": 42000, "vipRequired": 1 }
+  ]
+}

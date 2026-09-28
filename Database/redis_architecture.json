@@ -1,0 +1,35 @@
+{
+  "redis_cluster_config": {
+    "description": "Zero-latency in-memory Redis structures for Ahlan Chat / Zadira Live 7D real-time voice rooms, mic slots, and Device ID ban blacklists.",
+    "key_namespaces": {
+      "room_live_status": {
+        "pattern": "room:status:{room_id}",
+        "type": "HASH",
+        "fields": {
+          "owner_id": "1201637",
+          "visitor_count": "428",
+          "is_private": "false",
+          "request_to_speak_mode": "false",
+          "background_theme": "ORIENTAL_ISLAMIC_GOLD",
+          "slots_json": "[{\"slot_index\":0,\"user_id\":\"1201637\",\"is_locked\":false,\"is_muted\":false,\"decibel_level\":0.82}]"
+        }
+      },
+      "room_mic_request_queue": {
+        "pattern": "room:mic_queue:{room_id}",
+        "type": "ZSET",
+        "score": "timestamp_ms",
+        "member": "user_custom_id"
+      },
+      "global_hardware_ban_blacklist": {
+        "pattern": "blacklist:device_ids",
+        "type": "SET",
+        "description": "Intercepted at API Gateway & WebSocket handshake. Any matching Hardware Device ID or IP is rejected with HTTP 403 and force-disconnected."
+      },
+      "host_live_mic_timer": {
+        "pattern": "agency:host_session:{custom_id}",
+        "type": "HASH",
+        "description": "Tracks exact seconds a contracted host spends unmuted on a room microphone for monthly target calculation."
+      }
+    }
+  }
+}

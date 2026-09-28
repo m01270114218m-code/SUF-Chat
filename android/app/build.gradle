@@ -1,0 +1,22 @@
+plugins { id 'com.android.application' }
+
+def appUrl = System.getenv("APP_WEB_URL") ?: "https://suf-chat.vercel.app"
+
+android {
+    namespace 'com.sufchat.app'
+    compileSdk 35
+    defaultConfig {
+        applicationId 'com.sufchat.app'
+        minSdk 23
+        targetSdk 35
+        versionCode 1
+        versionName '1.0.0'
+        buildConfigField "String", "APP_URL", '"' + appUrl.replace('\\', '\\\\').replace('"', '\\"') + '"'
+    }
+    buildFeatures { buildConfig true }
+    packaging { resources { excludes += ['/META-INF/{AL2.0,LGPL2.1}'] } }
+}
+dependencies {
+    implementation 'androidx.appcompat:appcompat:1.7.0'
+    implementation 'androidx.webkit:webkit:1.13.0'
+}

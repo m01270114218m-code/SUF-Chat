@@ -59,6 +59,41 @@ object PharaohSupabaseAuth {
         }.decodeSingle<RemoteProfile>()
     }
 
+    suspend fun syncProfile(
+        userId: String,
+        displayName: String,
+        coins: Long,
+        diamonds: Long,
+        vipLevel: Int,
+        frameId: String?,
+        entryId: String?,
+        avatarUrl: String?,
+        coverUrl: String?
+    ) {
+        client.from("profiles").update({
+            set("display_name", displayName)
+            set("coins", coins)
+            set("diamonds", diamonds)
+            set("vip_level", vipLevel)
+            set("equipped_frame_id", frameId)
+            set("equipped_entry_welcome_id", entryId)
+            set("avatar_url", avatarUrl)
+            set("custom_cover_url", coverUrl)
+        }) {
+            filter { eq("id", userId) }
+        }
+    }
+
+    suspend fun upsertInventory(userId: String, itemId: String, equipped: Boolean) {
+        client.from("user_inventory").upsert(
+            mapOf(
+                "user_id" to userId,
+                "item_id" to itemId,
+                "is_equipped" to equipped
+            )
+        )
+    }
+
     fun signOut() {
         if (::client.isInitialized) {
             kotlinx.coroutines.runBlocking { client.auth.signOut() }

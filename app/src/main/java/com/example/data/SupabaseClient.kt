@@ -53,10 +53,10 @@ class SupabaseClient(context: Context) {
             .put("country", "EG")
             .put("display_id", displayId)
             .put("role_code", "USER")
-            .put("wealth_level", 1)
-            .put("charisma_level", 1)
+            .put("wealth_level", 0)
+            .put("charisma_level", 0)
             .put("vip_level", 0)
-            .put("coins", 1000)
+            .put("coins", 0)
             .put("diamonds", 0)
 
         val created = request(

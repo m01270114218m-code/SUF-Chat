@@ -299,16 +299,17 @@ class MainVoiceViewModel : ViewModel() {
         email: String,
         password: String,
         nickname: String?,
-        avatarType: String = "PRINCE"
+        avatarType: String = "PRINCE",
+        createAccount: Boolean = false
     ) {
         viewModelScope.launch {
             try {
                 val username = email.trim()
-                val remoteUserId = PharaohSupabaseAuth.loginOrCreate(username, password, nickname)
+                val remoteUserId = PharaohSupabaseAuth.loginOrCreate(username, password, nickname, allowCreate = createAccount)
                 val remoteProfile = PharaohSupabaseAuth.loadProfile(remoteUserId)
                 refreshRemoteAccessContext()
                 refreshStoreCatalogFromSupabase()
-                val syntheticEmail = username.lowercase().replace(" ", "_") + "@accounts.pharaohparty.local"
+                val syntheticEmail = if (username.contains("@")) username.trim().lowercase() else username.lowercase().replace(" ", "_") + "@accounts.pharaohparty.local"
 
                 val (record, localError) = MasterAppDatabaseTable.authenticateOrCreateAccount(
                     emailInput = syntheticEmail,

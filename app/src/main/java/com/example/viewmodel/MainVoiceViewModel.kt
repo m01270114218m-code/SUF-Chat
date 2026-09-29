@@ -1263,29 +1263,16 @@ class MainVoiceViewModel : ViewModel() {
     fun sendRoomChatMessage(text: String) {
         val clean = text.trim()
         if (clean.isEmpty()) return
-        val me = _userProfile.value
-        val msg = RoomChatMessage(
-            id = "msg_${System.currentTimeMillis()}",
-            senderUserId = me.uuid,
-            senderName = me.nickname,
-            senderDisplayId = me.displayId,
-            senderRole = me.role,
-            senderRoomRole = _activeRoom.value?.myRoleInRoom ?: RoomPermissionRole.MEMBER,
-            senderVip = me.vipTier,
-            senderWealthLevel = me.wealthLevel,
-            senderAvatarType = me.avatarType,
-            senderCustomAvatarUri = me.customAvatarUri,
-            senderChatBubbleFrame = me.equippedChatBubbleName,
-            messageText = clean,
-            highlightColor = me.frameStyle.primaryColor
-        )
-        _roomMessages.update { (it + msg).takeLast(50) }
-        persistRoomChatMessageToDatabase(msg, _activeRoom.value?.id ?: "room_1")
+        val roomId = _activeRoom.value?.id ?: return
+        viewModelScope.launch {
+            try {
+                val row = JSONObject(SupabaseRpcClient.sendRoomMessage(roomId, clean))
+                val me = _userProfile.value
+                val msg = RoomChatMessage(id = row.optString("id", "msg_" + System.currentTimeMillis()), senderUserId = me.uuid, senderName = me.nickname, senderDisplayId = me.displayId, senderRole = me.role, senderRoomRole = _activeRoom.value?.myRoleInRoom ?: RoomPermissionRole.MEMBER, senderVip = me.vipTier, senderWealthLevel = me.wealthLevel, senderAvatarType = me.avatarType, senderCustomAvatarUri = me.customAvatarUri, senderChatBubbleFrame = me.equippedChatBubbleName, messageText = clean, highlightColor = me.frameStyle.primaryColor)
+                _roomMessages.update { (it + msg).takeLast(50) }
+            } catch (e: Exception) { showToast("⚠️ تعذر إرسال الرسالة إلى Supabase: " + (e.message ?: "خطأ غير معروف")) }
+        }
     }
-
-    /**
-     * Triggers an animated 3D emoji right above the user's microphone avatar (`والاموجي المتحرك يظهر فوق الصور يكون متحرك ومميز جدا`)
-     */
     fun sendSeatEmojiReaction(emoji: String, titleAr: String = "") {
         val currentRoom = _activeRoom.value ?: return
         val me = _userProfile.value
@@ -1578,85 +1565,25 @@ class MainVoiceViewModel : ViewModel() {
      * Buy or Equip item from the Store (`المتجر`) or My Accessories (`إكسسواراتي`).
      */
     fun buyOrEquipStoreItem(item: StoreCatalogItem) {
-        if (item.category == StoreItemCategory.ROOM_THEMES && item.roomThemeId != null) {
-            changeRoomBackgroundStyle(item.roomThemeId)
-            showToast("🌌 تم تفعيل ثيم الغرفة المتحرك والشفاف: ${item.nameAr}")
-            return
-        }
-
-        val me = _userProfile.value
-        if (!item.isOwned && me.goldCoins < item.priceCoins) {
-            showToast("⚠️ رصيد العملات الذهبية غير كافٍ لشراء ${item.nameAr}")
-            return
-        }
-
-        val deductedCoins = if (item.isOwned) 0L else item.priceCoins
-        _userProfile.update { profile ->
-            profile.copy(
-                goldCoins = profile.goldCoins - deductedCoins,
-                frameStyle = if (item.category == StoreItemCategory.FRAMES && item.frameStyle != null) item.frameStyle else profile.frameStyle,
-                entryWelcomeName = if (item.category == StoreItemCategory.ENTRY_MOUNTS) item.nameAr else profile.entryWelcomeName,
-                displayId = if (item.category == StoreItemCategory.SPECIAL_IDS && item.specialIdValue != null) item.specialIdValue else profile.displayId,
-                isSpecialId = if (item.category == StoreItemCategory.SPECIAL_IDS) true else profile.isSpecialId,
-                equippedChatBubbleName = if (item.category == StoreItemCategory.CHAT_BUBBLES) item.nameAr else profile.equippedChatBubbleName
-            )
-        }
-
-        val updatedProfile = _userProfile.value
-        if (item.category == StoreItemCategory.FRAMES && item.frameStyle != null) {
-            _activeRoom.update { room ->
-                room ?: return@update null
-                room.copy(
-                    hostFrame = if (room.roomDisplayId == updatedProfile.displayId) item.frameStyle else room.hostFrame,
-                    seats = room.seats.map { seat ->
-                        if (seat.occupantDisplayId == updatedProfile.displayId || seat.occupantUserId == updatedProfile.uuid) {
-                            seat.copy(
-                                occupantFrame = item.frameStyle,
-                                soundWaveColor = item.frameStyle.soundWaveColor,
-                                nameColor = item.frameStyle.nameGradientColor
-                            )
-                        } else seat
-                    }
-                )
-            }
-            _rooms.update { list ->
-                list.map { room ->
-                    room.copy(
-                        hostFrame = if (room.roomDisplayId == updatedProfile.displayId) item.frameStyle else room.hostFrame,
-                        seats = room.seats.map { seat ->
-                            if (seat.occupantDisplayId == updatedProfile.displayId || seat.occupantUserId == updatedProfile.uuid) {
-                                seat.copy(
-                                    occupantFrame = item.frameStyle,
-                                    soundWaveColor = item.frameStyle.soundWaveColor,
-                                    nameColor = item.frameStyle.nameGradientColor
-                                )
-                            } else seat
-                        }
-                    )
-                }
-            }
-        }
-
-        _storeItems.update { list ->
-            list.map { existing ->
-                when {
-                    existing.id == item.id -> existing.copy(isOwned = true, isEquipped = true)
-                    existing.category == item.category -> existing.copy(isEquipped = false)
-                    else -> existing
-                }
-            }
-        }
         viewModelScope.launch {
-            runCatching { PharaohSupabaseAuth.upsertInventory(_userProfile.value.uuid, item.id, true) }
+            try {
+                if (PharaohSupabaseAuth.accessToken().isNullOrBlank()) { showToast("⚠️ يجب تسجيل الدخول أولاً"); return@launch }
+                val alreadyOwned = item.isOwned
+                if (!alreadyOwned) {
+                    val result = JSONObject(SupabaseRpcClient.purchaseStoreItem(item.id))
+                    if (!result.optBoolean("success", false)) error(result.optString("error", "تعذر إتمام الشراء"))
+                }
+                if (item.category == StoreItemCategory.FRAMES || item.category == StoreItemCategory.ENTRY_MOUNTS) {
+                    val result = JSONObject(SupabaseRpcClient.equipStoreItem(item.id))
+                    if (!result.optBoolean("success", false)) error(result.optString("error", "تعذر تفعيل العنصر"))
+                }
+                val remoteProfile = PharaohSupabaseAuth.loadProfile(_userProfile.value.uuid)
+                _userProfile.update { it.copy(goldCoins = remoteProfile.coins, crystalDiamonds = remoteProfile.diamonds, vipTier = remoteProfile.vipLevel, customAvatarUri = remoteProfile.avatarUrl) }
+                refreshStoreCatalogFromSupabase()
+                showToast(if (alreadyOwned) "✨ تم تفعيل " + item.nameAr else "🛍️ تم شراء " + item.nameAr + " من Supabase")
+            } catch (e: Exception) { showToast("⚠️ فشل العملية: " + (e.message ?: "خطأ غير معروف")) }
         }
-        syncCurrentProfileToMasterTable()
-        syncRemoteProfileToSupabase()
-        showToast(
-            if (item.isOwned) "✨ تم تفعيل ${item.nameAr} على حسابك"
-            else "🛍️ تم شراء وتفعيل ${item.nameAr} بنجاح!"
-        )
     }
-
     fun giftStoreItemToFriend(item: StoreCatalogItem, targetUserId: String) {
         val me = _userProfile.value
         if (me.goldCoins < item.priceCoins) {

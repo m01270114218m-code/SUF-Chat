@@ -1275,6 +1275,7 @@ class MainVoiceViewModel : ViewModel() {
             )
         }
         syncCurrentProfileToMasterTable()
+        syncRemoteProfileToSupabase()
 
         val updatedMe = _userProfile.value
         val giftAnnouncement = RoomChatMessage(
@@ -1338,6 +1339,7 @@ class MainVoiceViewModel : ViewModel() {
         val reward = game.minBetCoins * 2
         _userProfile.update { it.copy(goldCoins = it.goldCoins - game.minBetCoins + reward) }
         syncCurrentProfileToMasterTable()
+        syncRemoteProfileToSupabase()
         showToast("🎰 مبروك! ربحت +$reward 🪙 في ${game.titleAr}")
     }
 
@@ -1504,6 +1506,9 @@ class MainVoiceViewModel : ViewModel() {
                     else -> existing
                 }
             }
+        }
+        viewModelScope.launch {
+            runCatching { PharaohSupabaseAuth.upsertInventory(_userProfile.value.uuid, item.id, true) }
         }
         syncCurrentProfileToMasterTable()
         syncRemoteProfileToSupabase()

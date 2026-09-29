@@ -30,6 +30,10 @@ object SupabaseRestClient {
     suspend fun loadUiAssets(): String = withContext(Dispatchers.IO) { request("ui_assets?select=*&enabled=eq.true&order=z_index.asc,sort_order.asc") }
     suspend fun loadStoreItemsRaw(): String = withContext(Dispatchers.IO) { request("store_items?select=*&enabled=eq.true&order=sort_order.asc") }
     suspend fun findStoreAsset(name: String): String = withContext(Dispatchers.IO) { request("store_items?select=id,name,asset_url,asset_type,mime_type,is_animated,animation_type,duration_ms,loop&name=eq.${java.net.URLEncoder.encode(name, "UTF-8")}&limit=1") }
+    suspend fun findProfileIdByDisplayId(displayId: String): String? = withContext(Dispatchers.IO) {
+        val raw = request("profiles?select=id&display_id=eq.${java.net.URLEncoder.encode(displayId.trim(), "UTF-8")}&limit=1")
+        org.json.JSONArray(raw).optJSONObject(0)?.optString("id")?.takeIf { it.isNotBlank() }
+    }
     suspend fun loadAppConfig(): String = withContext(Dispatchers.IO) { request("app_config?select=*&id=eq.global") }
     suspend fun loadAppSettings(): String = withContext(Dispatchers.IO) { request("app_settings?select=*") }
     suspend fun loadPublicRooms(): String = withContext(Dispatchers.IO) { request("rooms?select=*&is_active=eq.true&order=created_at.desc") }

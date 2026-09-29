@@ -38,7 +38,7 @@ object PharaohSupabaseAuth {
         }
         val normalized = raw.replace(Regex("[^a-z0-9_.-]"), "_")
         require(normalized.length >= 3) { "اسم الحساب يجب أن يكون 3 أحرف أو أكثر" }
-        return "$normalized@accounts.pharaohparty.local"
+        return "$normalized@accounts.pharaohparty.com"
     }
 
     suspend fun loginOrCreate(username: String, credential: String, nickname: String?, allowCreate: Boolean = true): String =
@@ -86,10 +86,13 @@ object PharaohSupabaseAuth {
         val prefs = appContext.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
         var email = prefs.getString(QUICK_EMAIL, null)
         var password = prefs.getString(QUICK_PASSWORD, null)
+        if (!email.isNullOrBlank() && email.endsWith(".local", ignoreCase = true)) {
+            email = null
+        }
         if (email.isNullOrBlank() || password.isNullOrBlank()) {
             val deviceId = android.provider.Settings.Secure.getString(appContext.contentResolver, android.provider.Settings.Secure.ANDROID_ID).orEmpty()
             val hash = MessageDigest.getInstance("SHA-256").digest(deviceId.toByteArray(Charsets.UTF_8)).joinToString("") { "%02x".format(it) }
-            email = "device_" + hash.take(24) + "@quick.pharaohparty.local"
+            email = "device_" + hash.take(24) + "@quick.pharaohparty.com"
             password = UUID.randomUUID().toString().replace("-", "") + "Q9!"
             prefs.edit().putString(QUICK_EMAIL, email).putString(QUICK_PASSWORD, password).apply()
         }

@@ -11,6 +11,7 @@ import com.example.data.RoomSettingsEntity
 import com.example.data.UserAccountEntity
 import com.example.data.ZadiraAppDao
 import com.example.data.ZadiraDatabase
+import com.example.data.SupabaseClient
 import com.example.models.AppUserRole
 import com.example.models.CasualGameItem
 import com.example.models.ChargeAgentRewardItem
@@ -132,6 +133,7 @@ class MainVoiceViewModel : ViewModel() {
 
     private var appDao: ZadiraAppDao? = null
     private var isDatabaseAttached = false
+    private var supabaseClient: SupabaseClient? = null
 
     private val _storeItems = MutableStateFlow(MasterAppDatabaseTable.getStoreAndAccessoriesTable())
     val storeItems: StateFlow<List<StoreCatalogItem>> = _storeItems.asStateFlow()
@@ -188,6 +190,7 @@ class MainVoiceViewModel : ViewModel() {
     fun attachRoomDatabase(context: Context) {
         if (isDatabaseAttached) return
         isDatabaseAttached = true
+        supabaseClient = SupabaseClient(context.applicationContext)
         val dao = ZadiraDatabase.getInstance(context).appDao()
         appDao = dao
 
@@ -278,9 +281,9 @@ class MainVoiceViewModel : ViewModel() {
     }
 
     /**
-     * Persistent Login or Account Creation:
-     * - If the email already exists and password matches -> opens that exact account with its existing ID.
-     * - If the email does not exist -> creates a new account with a brand-new unique ID (`معرف جديد`).
+     * Real Supabase authentication. No local/test credentials are accepted here.
+     * Email/password authentication is handled by Supabase Auth and the user's profile
+     * is persisted in the production `public.profiles` table.
      */
     fun loginOrRegister(
         email: String,
@@ -288,72 +291,65 @@ class MainVoiceViewModel : ViewModel() {
         nickname: String?,
         avatarType: String = "PRINCE"
     ) {
-        val (record, errorMsg) = MasterAppDatabaseTable.authenticateOrCreateAccount(
-            emailInput = email,
-            passwordInput = password,
-            nicknameInput = nickname ?: "",
-            avatarTypeInput = avatarType
-        )
-        if (errorMsg != null || record == null) {
-            _authErrorMessage.value = errorMsg ?: "تعذر تسجيل الدخول"
+        val client = supabaseClient
+        if (client == null) {
+            _authErrorMessage.value = "لم يتم تهيئة اتصال Supabase بعد"
+            return
+        }
+        if (email.isBlank() || password.length < 6) {
+            _authErrorMessage.value = "أدخل بريدًا إلكترونيًا وكلمة مرور من 6 أحرف على الأقل"
             return
         }
 
-        _authErrorMessage.value = null
-        _userProfile.value = record.profile
-        MasterAppDatabaseTable.bindDefaultRoomPermissionsForUser(record.profile.displayId, record.profile.uuid)
-
-        // Automatically bind the user's own room (room_1) to their ID as OWNER, room_2 as ADMIN, and resolve all rooms by ID
-        _rooms.update { list ->
-            list.map { room ->
-                val adjustedRoom = when (room.id) {
-                    "room_1" -> room.copy(
-                        roomDisplayId = record.profile.displayId,
-                        hostUserId = record.profile.uuid,
-                        hostName = record.profile.nickname,
-                        seats = room.seats.map { seat ->
-                            if (seat.seatIndex == 0) {
-                                seat.copy(
-                                    occupantUserId = record.profile.uuid,
-                                    occupantName = record.profile.nickname,
-                                    occupantDisplayId = record.profile.displayId,
-                                    occupantFrame = record.profile.frameStyle
-                                )
-                            } else seat
-                        }
-                    )
-                    "room_2" -> room.copy(
-                        adminUserIds = (room.adminUserIds + record.profile.uuid + record.profile.displayId).distinct()
-                    )
-                    else -> room
+        viewModelScope.launch {
+            _authErrorMessage.value = null
+            try {
+                val auth = try {
+                    client.signIn(email, password)
+                } catch (signInError: Exception) {
+                    // Only attempt registration when the existing login fails. Supabase remains
+                    // the source of truth; there is no local fallback account.
+                    client.signUp(email, password)
                 }
-                val autoRole = MasterAppDatabaseTable.resolveRoomRoleAutomaticallyById(
-                    room = adjustedRoom,
-                    userDisplayId = record.profile.displayId,
-                    userUuid = record.profile.uuid
+                client.saveSession(auth)
+                val profile = client.ensureProfile(
+                    userId = auth.userId,
+                    email = auth.email,
+                    nickname = nickname.orEmpty(),
+                    avatarType = avatarType
                 )
-                adjustedRoom.copy(myRoleInRoom = autoRole)
-            }
-        }
 
-        // Sync owned items from the account record
-        _storeItems.update { list ->
-            list.map { item ->
-                val owned = record.ownedItemIds.contains(item.id)
-                val equipped = when (item.category) {
-                    StoreItemCategory.FRAMES -> item.frameStyle == record.profile.frameStyle
-                    StoreItemCategory.ENTRY_MOUNTS -> item.nameAr == record.profile.entryWelcomeName
-                    StoreItemCategory.SPECIAL_IDS -> item.specialIdValue == record.profile.displayId
-                    StoreItemCategory.CHAT_BUBBLES -> item.nameAr == record.profile.equippedChatBubbleName
-                    StoreItemCategory.ROOM_THEMES -> item.roomThemeId == "PALACE_NIGHT"
+                val current = _userProfile.value
+                val displayId = profile.optString("display_id").ifBlank { auth.userId.takeLast(7) }
+                val displayName = profile.optString("display_name").ifBlank {
+                    nickname?.ifBlank { auth.email.substringBefore("@") } ?: auth.email.substringBefore("@")
                 }
-                item.copy(isOwned = owned, isEquipped = equipped)
+                _userProfile.value = current.copy(
+                    uuid = auth.userId,
+                    displayId = displayId,
+                    email = auth.email,
+                    nickname = displayName,
+                    goldCoins = profile.optLong("coins", current.goldCoins),
+                    crystalDiamonds = profile.optLong("diamonds", current.crystalDiamonds),
+                    vipTier = profile.optInt("vip_level", current.vipTier),
+                    wealthLevel = profile.optInt("wealth_level", current.wealthLevel),
+                    charismaLevel = profile.optInt("charisma_level", current.charismaLevel),
+                    isHostAgent = profile.optBoolean("is_host_agent", false),
+                    isHostMember = profile.optBoolean("is_host_member", false),
+                    isChargeAgent = profile.optBoolean("is_charge_agent", false)
+                )
+
+                MasterAppDatabaseTable.bindDefaultRoomPermissionsForUser(displayId, auth.userId)
+                _isLoggedIn.value = true
+                syncCurrentProfileToMasterTable()
+                persistRoomsToDatabase()
+                showToast("👑 مرحباً بك $displayName • معرف حسابك ID: $displayId")
+            } catch (e: Exception) {
+                _authErrorMessage.value = e.message?.ifBlank { "تعذر الاتصال بـ Supabase" }
+                    ?: "تعذر الاتصال بـ Supabase"
+                _isLoggedIn.value = false
             }
         }
-        _isLoggedIn.value = true
-        syncCurrentProfileToMasterTable()
-        persistRoomsToDatabase()
-        showToast("👑 مرحباً بك ${record.profile.nickname} • معرف حسابك ID: ${record.profile.displayId}")
     }
 
     private fun syncCurrentProfileToMasterTable() {

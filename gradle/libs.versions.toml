@@ -33,6 +33,7 @@ loggingInterceptor = "4.10.0"
 okhttp = "4.10.0"
 moshiKotlin = "1.15.2"
 moshiKotlinCodegen = "1.15.2"
+kotlinxSerializationJson = "1.9.0"
 supabase = "3.2.6"
 ktor = "3.3.0"
 datastorePreferences = "1.1.7"
@@ -44,10 +45,6 @@ credentials = "1.5.0"
 googleid = "1.1.1"
 
 
-supabase-bom = { group = "io.github.jan-tennert.supabase", name = "bom", version.ref = "supabase" }
-supabase-auth = { group = "io.github.jan-tennert.supabase", name = "auth-kt" }
-supabase-postgrest = { group = "io.github.jan-tennert.supabase", name = "postgrest-kt" }
-ktor-client-android = { group = "io.ktor", name = "ktor-client-android", version.ref = "ktor" }
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -101,6 +98,11 @@ firebase-auth = { group = "com.google.firebase", name = "firebase-auth" }
 androidx-credentials = { group = "androidx.credentials", name = "credentials", version.ref = "credentials" }
 androidx-credentials-play-services = { group = "androidx.credentials", name = "credentials-play-services-auth", version.ref = "credentials" }
 googleid = { group = "com.google.android.libraries.identity.googleid", name = "googleid", version.ref = "googleid" }
+supabase-bom = { group = "io.github.jan-tennert.supabase", name = "bom", version.ref = "supabase" }
+supabase-auth = { group = "io.github.jan-tennert.supabase", name = "auth-kt" }
+supabase-postgrest = { group = "io.github.jan-tennert.supabase", name = "postgrest-kt" }
+ktor-client-android = { group = "io.ktor", name = "ktor-client-android", version.ref = "ktor" }
+kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinxSerializationJson" }
 
 
 [plugins]
@@ -109,3 +111,4 @@ kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "ko
 google-devtools-ksp = { id = "com.google.devtools.ksp", version.ref = "googleDevtoolsKsp" }
 secrets = { id = "com.google.android.libraries.mapsplatform.secrets-gradle-plugin", version.ref = "secretsGradlePlugin" }
 google-services = { id = "com.google.gms.google-services", version.ref = "googleServices" }
+kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }

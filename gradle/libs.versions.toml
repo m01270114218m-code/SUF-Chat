@@ -105,6 +105,7 @@ ktor-client-android = { group = "io.ktor", name = "ktor-client-android", version
 kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinxSerializationJson" }
 
 
+# Supabase SDK versions are explicit to keep the Android compile classpath deterministic.
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }

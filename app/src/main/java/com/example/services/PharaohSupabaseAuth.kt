@@ -86,11 +86,7 @@ object PharaohSupabaseAuth {
 
     suspend fun upsertInventory(userId: String, itemId: String, equipped: Boolean) {
         client.from("user_inventory").upsert(
-            mapOf(
-                "user_id" to userId,
-                "item_id" to itemId,
-                "is_equipped" to equipped
-            )
+            InventoryUpsert(userId = userId, itemId = itemId, isEquipped = equipped)
         )
     }
 

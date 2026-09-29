@@ -162,12 +162,13 @@ fun ZadiraRoyalVoiceApp(
     if (!isLoggedIn) {
         AuthScreen(
             authErrorMessage = authErrorMessage,
-            onLoginSuccess = { email, password, nickname, avatarType ->
+            onLoginSuccess = { email, password, nickname, avatarType, createAccount ->
                 viewModel.loginOrRegister(
                     email = email,
                     password = password,
                     nickname = nickname,
-                    avatarType = avatarType
+                    avatarType = avatarType,
+                    createAccount = createAccount
                 )
             }
         )

@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.config.MasterAppDatabaseTable
 import com.example.models.UserProfile
+import com.example.services.RemoteAccessContextStore
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -86,8 +87,9 @@ class AgencyAuthorizationViewModel : ViewModel() {
     val authorizationState: StateFlow<AgencyAuthorizationUiState> = combine(
         _observedUserProfile,
         MasterAppDatabaseTable.agencyPermissionsStateFlow,
-        MasterAppDatabaseTable.featureControlStateFlow
-    ) { user, agencyRegistryMap, featureControls ->
+        MasterAppDatabaseTable.featureControlStateFlow,
+        RemoteAccessContextStore.state
+    ) { user, agencyRegistryMap, featureControls, remoteAccess ->
         val displayId = user?.displayId?.trim().orEmpty()
         val serverGrant = agencyRegistryMap[displayId]
 
@@ -101,8 +103,12 @@ class AgencyAuthorizationViewModel : ViewModel() {
         val activeDays = serverGrant?.hostActiveDays ?: (user?.hostActiveDays ?: 0)
         val giftDiamonds = serverGrant?.hostGiftsDiamonds ?: (user?.hostGiftsDiamonds ?: 0L)
 
-        val visibilityMap = featureControls.associate { it.featureKey to it.isVisibleInApp }
-        val enabledMap = featureControls.associate { it.featureKey to it.isEnabledForUse }
+        val visibilityMap = featureControls.associate { it.featureKey to it.isVisibleInApp }.toMutableMap().apply {
+            remoteAccess.features.forEach { put(it.featureKey, it.visible) }
+        }
+        val enabledMap = featureControls.associate { it.featureKey to it.isEnabledForUse }.toMutableMap().apply {
+            remoteAccess.features.forEach { put(it.featureKey, it.enabled) }
+        }
 
         AgencyAuthorizationUiState(
             currentUserDisplayId = displayId,

@@ -13,6 +13,10 @@ import com.example.data.ZadiraAppDao
 import com.example.data.ZadiraDatabase
 import com.example.services.PharaohSupabaseAuth
 import com.example.services.SupabaseRpcClient
+import com.example.services.RemoteAccessContext
+import com.example.services.RemoteAccessContextStore
+import com.example.services.RemoteAgencyAccess
+import com.example.services.RemoteFeatureAccess
 import com.example.models.AppUserRole
 import com.example.models.CasualGameItem
 import com.example.models.ChargeAgentRewardItem
@@ -296,6 +300,7 @@ class MainVoiceViewModel : ViewModel() {
                 val username = email.trim()
                 val remoteUserId = PharaohSupabaseAuth.loginOrCreate(username, password, nickname)
                 val remoteProfile = PharaohSupabaseAuth.loadProfile(remoteUserId)
+                refreshRemoteAccessContext()
                 val syntheticEmail = username.lowercase().replace(" ", "_") + "@accounts.pharaohparty.local"
 
                 val (record, localError) = MasterAppDatabaseTable.authenticateOrCreateAccount(
@@ -385,6 +390,47 @@ class MainVoiceViewModel : ViewModel() {
             } catch (e: Exception) {
                 _authErrorMessage.value = e.message ?: "تعذر تسجيل الدخول إلى قاعدة البيانات"
             }
+        }
+    }
+
+    private suspend fun refreshRemoteAccessContext() {
+        runCatching {
+            val raw = SupabaseRpcClient.getMyAccessContext()
+            val json = JSONObject(raw)
+            val agencies = mutableListOf<RemoteAgencyAccess>()
+            val agencyArray = json.optJSONArray("agencies")
+            if (agencyArray != null) for (i in 0 until agencyArray.length()) {
+                val a = agencyArray.getJSONObject(i)
+                agencies += RemoteAgencyAccess(
+                    agencyId = a.optString("agency_id"),
+                    agencyName = a.optString("agency_name"),
+                    agencyType = a.optString("agency_type"),
+                    role = a.optString("role"),
+                    coinsBalance = a.optLong("coins_balance")
+                )
+            }
+            val features = mutableListOf<RemoteFeatureAccess>()
+            val featureArray = json.optJSONArray("feature_controls")
+            if (featureArray != null) for (i in 0 until featureArray.length()) {
+                val f = featureArray.getJSONObject(i)
+                features += RemoteFeatureAccess(
+                    featureKey = f.optString("feature_key"),
+                    visible = f.optBoolean("visible", true),
+                    enabled = f.optBoolean("enabled", true),
+                    requiredRole = f.optString("required_role", "ALL")
+                )
+            }
+            RemoteAccessContextStore.set(
+                RemoteAccessContext(
+                    isChargeAgent = json.optBoolean("is_charge_agent", false),
+                    isHostAgent = json.optBoolean("is_host_agent", false),
+                    isHost = json.optBoolean("is_host", false),
+                    agencies = agencies,
+                    features = features
+                )
+            )
+        }.onFailure {
+            RemoteAccessContextStore.clear()
         }
     }
 

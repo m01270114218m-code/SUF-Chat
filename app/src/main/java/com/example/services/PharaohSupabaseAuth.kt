@@ -8,12 +8,16 @@ import kotlinx.serialization.json.Json
 import org.json.JSONArray
 import org.json.JSONObject
 import java.net.HttpURLConnection
+import java.security.MessageDigest
+import java.util.UUID
 import java.net.URL
 
 object PharaohSupabaseAuth {
     private const val PREFS = "pharaoh_supabase_session"
     private const val ACCESS_TOKEN = "access_token"
     private const val USER_ID = "user_id"
+    private const val QUICK_EMAIL = "quick_email"
+    private const val QUICK_PASSWORD = "quick_password"
 
     private lateinit var appContext: Context
     private var token: String? = null
@@ -77,6 +81,28 @@ object PharaohSupabaseAuth {
             saveSession(access, id)
             id
         }
+
+    suspend fun quickLogin(): String = withContext(Dispatchers.IO) {
+        val prefs = appContext.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+        var email = prefs.getString(QUICK_EMAIL, null)
+        var password = prefs.getString(QUICK_PASSWORD, null)
+        if (email.isNullOrBlank() || password.isNullOrBlank()) {
+            val deviceId = android.provider.Settings.Secure.getString(appContext.contentResolver, android.provider.Settings.Secure.ANDROID_ID).orEmpty()
+            val hash = MessageDigest.getInstance("SHA-256").digest(deviceId.toByteArray(Charsets.UTF_8)).joinToString("") { "%02x".format(it) }
+            email = "device_" + hash.take(24) + "@quick.pharaohparty.local"
+            password = UUID.randomUUID().toString().replace("-", "") + "Q9!"
+            prefs.edit().putString(QUICK_EMAIL, email).putString(QUICK_PASSWORD, password).apply()
+        }
+        val login = runCatching { authRequest("POST", "/auth/v1/token?grant_type=password", JSONObject().apply { put("email", email); put("password", password) }) }.getOrNull()
+        val response = login ?: authRequest("POST", "/auth/v1/signup", JSONObject().apply {
+            put("email", email); put("password", password);
+            put("data", JSONObject().apply { put("display_name", "مستخدم فرعون بارتي"); put("username", email) })
+        })
+        val access = response.optString("access_token").takeIf { it.isNotBlank() }
+        val id = response.optJSONObject("user")?.optString("id")?.takeIf { it.isNotBlank() } ?: response.optString("id").takeIf { it.isNotBlank() }
+        if (access.isNullOrBlank() || id.isNullOrBlank()) error("تعذر إنشاء جلسة الدخول السريع. تأكد من تفعيل Email Signups في Supabase.")
+        token = access; userId = id; saveSession(access, id); id
+    }
 
     suspend fun loadProfile(userId: String): RemoteProfile = withContext(Dispatchers.IO) {
         val encoded = java.net.URLEncoder.encode(userId, "UTF-8")

@@ -13,6 +13,8 @@ import com.example.data.ZadiraAppDao
 import com.example.data.ZadiraDatabase
 import com.example.services.PharaohSupabaseAuth
 import com.example.services.SupabaseRpcClient
+import com.example.services.SupabaseRestClient
+import com.example.services.RemoteVisualCatalogStore
 import com.example.services.RemoteAccessContext
 import com.example.services.RemoteAccessContextStore
 import com.example.services.RemoteAgencyAccess
@@ -199,6 +201,10 @@ class MainVoiceViewModel : ViewModel() {
         appDao = dao
 
         viewModelScope.launch {
+            // Server is the source of truth for remotely managed visual assets.
+            runCatching {
+                RemoteVisualCatalogStore.replaceFromJson(SupabaseRestClient.loadUiAssets())
+            }
             // 1. Seed & Observe Database-Assigned Home Banners (`home_banners_table`)
             val existingBanners = dao.getAllHomeBanners()
             if (existingBanners.isEmpty()) {
@@ -1407,15 +1413,23 @@ class MainVoiceViewModel : ViewModel() {
             mountTitleAr.contains("يخت") -> SvgaEffectType.LUXURY_YACHT_6D
             else -> SvgaEffectType.ROYAL_PALACE_CASTLE_7D
         }
-        _activeSvgaOverlay.value = ActiveSvgaAnimationState(
-            effectType = effect,
-            titleAr = mountTitleAr,
-            senderName = me.nickname,
-            receiverName = "دخولية غرفة ملكية 7D",
-            comboCount = 1,
-            isEntranceMount = true,
-            assetFormat = "SVGA • GIF • WEBP • MP4 • PNG"
-        )
+        viewModelScope.launch {
+            val remoteAsset = runCatching {
+                val raw = SupabaseRestClient.findStoreAsset(mountTitleAr)
+                val arr = org.json.JSONArray(raw)
+                arr.optJSONObject(0)?.optString("asset_url")?.takeIf { it.isNotBlank() }
+            }.getOrNull()
+            _activeSvgaOverlay.value = ActiveSvgaAnimationState(
+                effectType = effect,
+                titleAr = mountTitleAr,
+                senderName = me.nickname,
+                receiverName = "دخولية غرفة ملكية 7D",
+                comboCount = 1,
+                isEntranceMount = true,
+                assetFormat = "SVGA • GIF • WEBP • MP4 • PNG",
+                customAssetUri = remoteAsset
+            )
+        }
     }
 
     fun playMiniGameInRoom(game: CasualGameItem) {

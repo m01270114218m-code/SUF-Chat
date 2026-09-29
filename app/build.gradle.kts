@@ -50,6 +50,13 @@ android {
     compose = true
     buildConfig = true
   }
+
+  // Supabase client configuration: the publishable key is intentionally safe for mobile apps;
+  // privileged/secret keys are never embedded in the APK.
+  defaultConfig {
+    buildConfigField("String", "SUPABASE_URL", "\"https://fdvgpdfesvigtvmzjhnt.supabase.co\"")
+    buildConfigField("String", "SUPABASE_PUBLISHABLE_KEY", "\"sb_publishable_gW5LE2T9Y6rfv63DMHnYew_64sa1cOL\"")
+  }
   testOptions { unitTests { isIncludeAndroidResources = true } }
   dependenciesInfo {
     includeInApk = false

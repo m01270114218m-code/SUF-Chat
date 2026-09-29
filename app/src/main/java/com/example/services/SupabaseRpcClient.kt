@@ -28,6 +28,26 @@ object SupabaseRpcClient {
         } finally { connection.disconnect() }
     }
 
+
+    suspend fun getMyAccessContext(): String =
+        call("get_my_access_context", JSONObject())
+
+    suspend fun transferAgencyCoins(agencyId: String, targetUserId: String, coins: Long, note: String? = null): String =
+        call("transfer_agency_coins", JSONObject().apply {
+            put("p_agency_id", agencyId)
+            put("p_target_user_id", targetUserId)
+            put("p_coins", coins)
+            put("p_note", note ?: JSONObject.NULL)
+        })
+
+    suspend fun grantAgencyItem(agencyId: String, targetUserId: String, itemId: String, grantType: String): String =
+        call("grant_agency_item", JSONObject().apply {
+            put("p_agency_id", agencyId)
+            put("p_target_user_id", targetUserId)
+            put("p_item_id", itemId)
+            put("p_grant_type", grantType)
+        })
+
     suspend fun createRoom(name: String, title: String, type: String, privacy: String, country: String, coverUrl: String?, maxSeats: Int) =
         call("create_room", JSONObject().apply {
             put("p_name", name); put("p_title", title); put("p_type", type); put("p_privacy", privacy)

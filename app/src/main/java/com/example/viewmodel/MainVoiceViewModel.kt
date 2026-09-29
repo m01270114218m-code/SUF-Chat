@@ -304,6 +304,30 @@ class MainVoiceViewModel : ViewModel() {
     ) {
         viewModelScope.launch {
             try {
+                if (email == "__QUICK_LOGIN__") {
+                    val remoteUserId = PharaohSupabaseAuth.quickLogin()
+                    val remoteProfile = PharaohSupabaseAuth.loadProfile(remoteUserId)
+                    refreshRemoteAccessContext()
+                    refreshStoreCatalogFromSupabase()
+                    _authErrorMessage.value = null
+                    _userProfile.value = _userProfile.value.copy(
+                        uuid = remoteProfile.id,
+                        displayId = remoteProfile.displayId ?: _userProfile.value.displayId,
+                        email = "quick@device.pharaohparty.local",
+                        nickname = remoteProfile.displayName,
+                        customAvatarUri = remoteProfile.avatarUrl,
+                        goldCoins = remoteProfile.coins,
+                        crystalDiamonds = remoteProfile.diamonds,
+                        vipTier = remoteProfile.vipLevel,
+                        isHostAgent = remoteProfile.isHostAgent,
+                        isHostMember = remoteProfile.isHostMember,
+                        isChargeAgent = remoteProfile.isChargeAgent,
+                        isBanned = remoteProfile.isBanned
+                    )
+                    _isLoggedIn.value = !remoteProfile.isBanned
+                    if (remoteProfile.isBanned) _authErrorMessage.value = "هذا الحساب محظور: لا يمكن الدخول إلى التطبيق."
+                    return@launch
+                }
                 val username = email.trim()
                 val remoteUserId = PharaohSupabaseAuth.loginOrCreate(username, password, nickname, allowCreate = createAccount)
                 val remoteProfile = PharaohSupabaseAuth.loadProfile(remoteUserId)

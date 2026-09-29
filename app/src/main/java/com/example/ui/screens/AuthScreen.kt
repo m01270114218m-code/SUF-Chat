@@ -83,7 +83,8 @@ import com.example.R
 @Composable
 fun AuthScreen(
     authErrorMessage: String? = null,
-    onLoginSuccess: (email: String, password: String, nickname: String?, avatarType: String) -> Unit
+    onLoginSuccess: (email: String, password: String, nickname: String?, avatarType: String, createAccount: Boolean) -> Unit
+
 ) {
     var username by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -178,12 +179,25 @@ fun AuthScreen(
                         } else if (password.length < 6) {
                             localError = "كلمة المرور يجب أن تكون 6 أحرف أو أكثر"
                         } else {
-                            onLoginSuccess(username.trim(), password, nickname.trim().ifBlank { username.trim() }, "PRINCE")
+                            onLoginSuccess(username.trim(), password, nickname.trim().ifBlank { username.trim() }, "PRINCE", isRegisterMode)
                         }
                     }
                     .testTag("login_submit_button")
             ) {
                 Text(if (isRegisterMode) "إنشاء الحساب وتسجيل الدخول 👑" else "تسجيل الدخول 👑", color = Color(0xFF140D02), fontSize = 18.sp, fontWeight = FontWeight.Black)
+            }
+
+            Spacer(Modifier.height(14.dp))
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier.fillMaxWidth().height(54.dp)
+                    .clip(RoundedCornerShape(18.dp))
+                    .background(Color(0xFF241A39))
+                    .border(1.2.dp, Color(0xFFFFC72C).copy(alpha = .65f), RoundedCornerShape(18.dp))
+                    .clickable { onLoginSuccess("__QUICK_LOGIN__", "", "مستخدم فرعون بارتي", "PRINCE", true) }
+                    .testTag("quick_login_button")
+            ) {
+                Text("⚡ تسجيل دخول سريع", color = Color(0xFFFFD75A), fontSize = 17.sp, fontWeight = FontWeight.Black)
             }
 
             Spacer(Modifier.height(18.dp))

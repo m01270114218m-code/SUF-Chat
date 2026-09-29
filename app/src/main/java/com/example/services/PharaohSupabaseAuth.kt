@@ -70,18 +70,7 @@ object PharaohSupabaseAuth {
         avatarUrl: String?,
         coverUrl: String?
     ) {
-        client.from("profiles").update({
-            set("display_name", displayName)
-            set("coins", coins)
-            set("diamonds", diamonds)
-            set("vip_level", vipLevel)
-            set("equipped_frame_id", frameId)
-            set("equipped_entry_welcome_id", entryId)
-            set("avatar_url", avatarUrl)
-            set("custom_cover_url", coverUrl)
-        }) {
-            filter { eq("id", userId) }
-        }
+        SupabaseRpcClient.updateMyProfile(displayName, avatarUrl, coverUrl, frameId, entryId)
     }
 
     suspend fun upsertInventory(userId: String, itemId: String, equipped: Boolean) {
@@ -89,6 +78,8 @@ object PharaohSupabaseAuth {
             InventoryUpsert(userId = userId, itemId = itemId, isEquipped = equipped)
         )
     }
+
+    fun accessToken(): String? = if (::client.isInitialized) client.auth.currentSessionOrNull()?.accessToken else null
 
     fun signOut() {
         if (::client.isInitialized) {

@@ -29,6 +29,26 @@ object SupabaseRpcClient {
     }
 
 
+    suspend fun updateMyProfile(displayName: String, avatarUrl: String?, coverUrl: String?, frameId: String?, entryId: String?): String =
+        call("update_my_profile", JSONObject().apply {
+            put("p_display_name", displayName)
+            put("p_avatar_url", avatarUrl ?: JSONObject.NULL)
+            put("p_cover_url", coverUrl ?: JSONObject.NULL)
+            put("p_equipped_frame_id", frameId ?: JSONObject.NULL)
+            put("p_equipped_entry_welcome_id", entryId ?: JSONObject.NULL)
+        })
+
+    suspend fun purchaseStoreItem(itemId: String): String =
+        call("purchase_store_item", JSONObject().apply { put("p_item_id", itemId) })
+
+    suspend fun equipStoreItem(itemId: String): String =
+        call("equip_store_item", JSONObject().apply { put("p_item_id", itemId) })
+
+    suspend fun sendRoomMessage(roomId: String, message: String): String =
+        call("send_room_message", JSONObject().apply {
+            put("p_room_id", roomId); put("p_message", message)
+        })
+
     suspend fun getMyAccessContext(): String =
         call("get_my_access_context", JSONObject())
 

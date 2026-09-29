@@ -1,6 +1,0 @@
-{
-  "name": "Zadira Live",
-  "description": "Luxury 3D Gamified Live Voice Chatroom platform with interactive audio rooms, SVGA-style 3D gift animations, casual games center, moments feed, agencies, and dynamic server-ready configuration.",
-  "requestFramePermissions": [],
-  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
-}

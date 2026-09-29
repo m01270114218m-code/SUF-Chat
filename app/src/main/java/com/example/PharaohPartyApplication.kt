@@ -3,6 +3,7 @@ package com.example
 import android.app.Application
 import android.util.Log
 import com.example.services.SupabaseRestClient
+import com.example.services.PharaohSupabaseAuth
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -13,6 +14,7 @@ class PharaohPartyApplication : Application() {
 
     override fun onCreate() {
         super.onCreate()
+        PharaohSupabaseAuth.init(this)
         scope.launch {
             val connected = SupabaseRestClient.verifyConnection()
             if (connected) {

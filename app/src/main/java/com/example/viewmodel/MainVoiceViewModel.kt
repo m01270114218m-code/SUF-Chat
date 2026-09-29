@@ -1713,73 +1713,76 @@ class MainVoiceViewModel : ViewModel() {
      */
     fun shipCoinsAsChargeAgent(targetUserId: String, coinsAmount: Long) {
         val me = _userProfile.value
+        if (!me.isChargeAgent || coinsAmount <= 0L) {
+            showToast("⚠️ حسابك غير مفعل كوكيل شحن أو المبلغ غير صحيح")
+            return
+        }
+        viewModelScope.launch {
+            try {
+                val agency = RemoteAccessContextStore.state.value.agencies.firstOrNull {
+                    it.role == "charge_agent" || it.role == "owner"
+                } ?: error("لا توجد وكالة شحن مرتبطة بالحساب")
+                val targetUuid = SupabaseRestClient.findProfileIdByDisplayId(targetUserId)
+                    ?: error("لم يتم العثور على المستخدم بهذا ID")
+                val raw = SupabaseRpcClient.transferAgencyCoins(
+                    agencyId = agency.agencyId,
+                    targetUserId = targetUuid,
+                    coins = coinsAmount,
+                    note = "تحويل وكيل شحن إلى ID " + targetUserId
+                )
+                val result = JSONObject(raw)
+                _userProfile.update { it.copy(chargeAgentCoinsBalance = result.optLong("remaining", agency.coinsBalance - coinsAmount)) }
+                _chargeAgentShipmentLogs.update {
+                    listOf(ChargeAgentShipmentLog(
+                        id = "ship_" + System.currentTimeMillis(),
+                        targetUserId = targetUserId.trim(),
+                        descriptionAr = "تحويل حقيقي عبر Supabase إلى ID: " + targetUserId,
+                        coinsShipped = coinsAmount,
+                        timestampText = "الآن"
+                    )) + it
+                }
+                showToast("⚡ تم تحويل %,d 🪙 إلى ID %s".format(coinsAmount, targetUserId))
+            } catch (e: Exception) {
+                showToast("⚠️ فشل التحويل: " + (e.message ?: "خطأ غير معروف"))
+            }
+        }
+    }
+
+    fun sendChargeAgentRewardById(targetUserId: String, rewardItem: ChargeAgentRewardItem) {
+        val me = _userProfile.value
         if (!me.isChargeAgent) {
             showToast("⚠️ حسابك غير مفعل كوكيل شحن")
             return
         }
-        if (me.chargeAgentCoinsBalance < coinsAmount) {
-            showToast("⚠️ رصيد وكالة الشحن غير كافٍ لإتمام العملية")
-            return
-        }
-
-        val isShippingToSelf = targetUserId.trim() == me.displayId
-        _userProfile.update { profile ->
-            profile.copy(
-                chargeAgentCoinsBalance = profile.chargeAgentCoinsBalance - coinsAmount,
-                goldCoins = if (isShippingToSelf) profile.goldCoins + coinsAmount else profile.goldCoins
-            )
-        }
-
-        val targetRecord = MasterAppDatabaseTable.findAccountByDisplayId(targetUserId.trim())
-        if (targetRecord != null && !isShippingToSelf) {
-            targetRecord.profile = targetRecord.profile.copy(
-                goldCoins = targetRecord.profile.goldCoins + coinsAmount
-            )
-        }
-
-        val newLog = ChargeAgentShipmentLog(
-            id = "ship_${System.currentTimeMillis()}",
-            targetUserId = targetUserId.trim(),
-            descriptionAr = "شحن فوري عبر وكالة الشحن إلى ID: $targetUserId",
-            coinsShipped = coinsAmount,
-            timestampText = "الآن"
-        )
-        _chargeAgentShipmentLogs.update { listOf(newLog) + it }
-        syncCurrentProfileToMasterTable()
-        showToast("⚡ تم شحن %,d 🪙 إلى المستخدم ID: %s بنجاح!".format(coinsAmount, targetUserId))
-    }
-
-    /**
-     * Charge Agent Action: Send complimentary Frame or Entry Mount reward to any user by ID (`مكافآت يرسلها إلى أي مستخدم مثل الإطارات والدخوليات`).
-     */
-    fun sendChargeAgentRewardById(targetUserId: String, rewardItem: ChargeAgentRewardItem) {
-        val me = _userProfile.value
-        if (!me.isChargeAgent) return
-
-        val isSelf = targetUserId.trim() == me.displayId
-        if (rewardItem.category == StoreItemCategory.FRAMES && rewardItem.frameStyle != null) {
-            MasterAppDatabaseTable.grantFrameToUserById(targetUserId.trim(), rewardItem.frameStyle)
-            if (isSelf) {
-                _userProfile.update { it.copy(frameStyle = rewardItem.frameStyle) }
-            }
-        } else if (rewardItem.category == StoreItemCategory.ENTRY_MOUNTS) {
-            MasterAppDatabaseTable.grantEntryMountToUserById(targetUserId.trim(), rewardItem.nameAr)
-            if (isSelf) {
-                _userProfile.update { it.copy(entryWelcomeName = rewardItem.nameAr) }
+        viewModelScope.launch {
+            try {
+                val agency = RemoteAccessContextStore.state.value.agencies.firstOrNull {
+                    it.role == "charge_agent" || it.role == "owner"
+                } ?: error("لا توجد وكالة مرتبطة بالحساب")
+                val targetUuid = SupabaseRestClient.findProfileIdByDisplayId(targetUserId)
+                    ?: error("لم يتم العثور على المستخدم بهذا ID")
+                val grantType = if (rewardItem.category == StoreItemCategory.FRAMES) "frame" else "entry"
+                SupabaseRpcClient.grantAgencyItem(
+                    agencyId = agency.agencyId,
+                    targetUserId = targetUuid,
+                    itemId = rewardItem.id,
+                    grantType = grantType
+                )
+                _chargeAgentShipmentLogs.update {
+                    listOf(ChargeAgentShipmentLog(
+                        id = "rew_" + System.currentTimeMillis(),
+                        targetUserId = targetUserId.trim(),
+                        descriptionAr = "منح حقيقي من Supabase: " + rewardItem.nameAr,
+                        coinsShipped = 0L,
+                        rewardNameAr = rewardItem.nameAr,
+                        timestampText = "الآن"
+                    )) + it
+                }
+                showToast("🎁 تم إرسال " + rewardItem.nameAr + " إلى ID " + targetUserId)
+            } catch (e: Exception) {
+                showToast("⚠️ فشل إرسال المكافأة: " + (e.message ?: "خطأ غير معروف"))
             }
         }
-
-        val newLog = ChargeAgentShipmentLog(
-            id = "rew_${System.currentTimeMillis()}",
-            targetUserId = targetUserId.trim(),
-            descriptionAr = "إرسال مكافأة وكيل شحن: ${rewardItem.nameAr}",
-            coinsShipped = 0L,
-            rewardNameAr = rewardItem.nameAr,
-            timestampText = "الآن"
-        )
-        _chargeAgentShipmentLogs.update { listOf(newLog) + it }
-        syncCurrentProfileToMasterTable()
-        showToast("🎁 تم إرسال المكافأة (${rewardItem.nameAr}) إلى ID: $targetUserId بنجاح!")
     }
 
     fun rechargeGoldCoins(amount: Long) {

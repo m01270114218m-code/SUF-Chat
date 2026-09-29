@@ -70,6 +70,7 @@ import com.example.models.MainNavTab
 import com.example.models.StandaloneSubScreen
 import com.example.models.WinTickerNotice
 import com.example.ui.components.FullScreenSvga7DOverlay
+import com.example.ui.components.ServerDrivenAssetLayer
 import com.example.ui.screens.AudioRoomScreen
 import com.example.ui.screens.AuthScreen
 import com.example.ui.screens.DiscoverScreen
@@ -651,6 +652,13 @@ fun ZadiraRoyalVoiceApp(
                 }
             }
         }
+
+        // Remote visual studio layer: transparent PNG/WebP/GIF/SVGA assets positioned from Supabase.
+        val remoteArea = if (activeRoom != null) "room" else currentTab.name.lowercase()
+        ServerDrivenAssetLayer(
+            area = remoteArea,
+            modifier = Modifier.fillMaxSize()
+        )
 
         // Full-Screen 7D SVGA Gift / Entry Mount Overlay
         activeSvgaOverlay?.let { svga ->

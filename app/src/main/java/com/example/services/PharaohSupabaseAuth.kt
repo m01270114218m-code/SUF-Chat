@@ -32,7 +32,7 @@ object PharaohSupabaseAuth {
         return "$normalized@accounts.pharaohparty.local"
     }
 
-    suspend fun loginOrCreate(username: String, credential: String, nickname: String?, allowCreate: Boolean): String =
+    suspend fun loginOrCreate(username: String, credential: String, nickname: String?, allowCreate: Boolean = true): String =
         withContext(Dispatchers.IO) {
             val email = accountEmail(username)
             val login = runCatching {

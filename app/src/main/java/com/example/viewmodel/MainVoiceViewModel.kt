@@ -307,6 +307,7 @@ class MainVoiceViewModel : ViewModel() {
                 val remoteUserId = PharaohSupabaseAuth.loginOrCreate(username, password, nickname)
                 val remoteProfile = PharaohSupabaseAuth.loadProfile(remoteUserId)
                 refreshRemoteAccessContext()
+                refreshStoreCatalogFromSupabase()
                 val syntheticEmail = username.lowercase().replace(" ", "_") + "@accounts.pharaohparty.local"
 
                 val (record, localError) = MasterAppDatabaseTable.authenticateOrCreateAccount(
@@ -396,6 +397,42 @@ class MainVoiceViewModel : ViewModel() {
             } catch (e: Exception) {
                 _authErrorMessage.value = e.message ?: "تعذر تسجيل الدخول إلى قاعدة البيانات"
             }
+        }
+    }
+
+    private suspend fun refreshStoreCatalogFromSupabase() {
+        runCatching {
+            val raw = SupabaseRestClient.loadStoreItemsRaw()
+            val arr = org.json.JSONArray(raw)
+            val mapped = buildList {
+                for (i in 0 until arr.length()) {
+                    val o = arr.getJSONObject(i)
+                    val category = runCatching {
+                        StoreItemCategory.valueOf(o.optString("category").uppercase())
+                    }.getOrDefault(StoreItemCategory.FRAMES)
+                    val frameStyle = o.optString("frame_id").takeIf { it.isNotBlank() }?.let {
+                        runCatching { FrameStyle3D.valueOf(it) }.getOrNull()
+                    }
+                    add(
+                        StoreCatalogItem(
+                            id = o.optString("id"),
+                            nameAr = o.optString("name"),
+                            subtitleAr = o.optString("name"),
+                            category = category,
+                            priceCoins = o.optLong("price_coins"),
+                            iconEmoji = o.optString("icon", category.iconEmoji),
+                            primaryColor = Color(0xFFFFD700),
+                            secondaryColor = Color(0xFF8B5CF6),
+                            frameStyle = frameStyle,
+                            specialIdValue = if (category == StoreItemCategory.SPECIAL_IDS) o.optString("id") else null,
+                            assetFormat = o.optString("mime_type", o.optString("asset_type", "image")),
+                            customAssetUri = o.optString("asset_url").takeIf { it.isNotBlank() },
+                            isVisible = o.optBoolean("enabled", true)
+                        )
+                    )
+                }
+            }
+            if (mapped.isNotEmpty()) _storeItems.value = mapped
         }
     }
 

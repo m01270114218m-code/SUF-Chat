@@ -27,7 +27,12 @@ object PharaohSupabaseAuth {
     }
 
     private fun accountEmail(username: String): String {
-        val normalized = username.trim().lowercase().replace(Regex("[^a-z0-9_.-]"), "_")
+        val raw = username.trim().lowercase()
+        if (raw.contains("@")) {
+            require(raw.length >= 6) { "البريد الإلكتروني غير صالح" }
+            return raw
+        }
+        val normalized = raw.replace(Regex("[^a-z0-9_.-]"), "_")
         require(normalized.length >= 3) { "اسم الحساب يجب أن يكون 3 أحرف أو أكثر" }
         return "$normalized@accounts.pharaohparty.local"
     }

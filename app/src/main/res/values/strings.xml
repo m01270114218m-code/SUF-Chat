@@ -1,6 +1,6 @@
 <resources>
-    <string name="app_name">Zadira Live</string>
-    <string name="login_title">زاديرا لايف - عالم الدردشة الصوتية الملكي</string>
+    <string name="app_name">فرعون بارتي</string>
+    <string name="login_title">فرعون بارتي - عالم الدردشة الصوتية الملكي</string>
     <string name="login_subtitle">ادخل عالم الفخامة، الغرف الصوتية الحية، والألعاب التفاعلية ثلاثية الأبعاد</string>
     <string name="email_label">البريد الإلكتروني أو المعرف المميز (ID)</string>
     <string name="password_label">كلمة المرور</string>

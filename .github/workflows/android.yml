@@ -1,4 +1,5 @@
 name: Android APK
+# Supabase account integration build
 
 on:
   push:

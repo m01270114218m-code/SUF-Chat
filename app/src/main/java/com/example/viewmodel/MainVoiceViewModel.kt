@@ -897,6 +897,8 @@ class MainVoiceViewModel : ViewModel() {
 
     fun toggleMyMicMute() {
         val nextMute = !_isMyMicMuted.value
+        val roomId = _activeRoom.value?.id
+        if (roomId != null) viewModelScope.launch { runCatching { SupabaseRpcClient.setMyMute(roomId, nextMute) } }
         _isMyMicMuted.value = nextMute
         val me = _userProfile.value
         _activeRoom.update { room ->
@@ -918,6 +920,17 @@ class MainVoiceViewModel : ViewModel() {
         val currentRoom = _activeRoom.value ?: return
         val me = _userProfile.value
         val targetSeat = currentRoom.seats.firstOrNull { it.seatIndex == seatIndex } ?: return
+        viewModelScope.launch {
+            runCatching {
+                if (targetSeat.occupantUserId == me.uuid || targetSeat.occupantDisplayId == me.displayId) {
+                    SupabaseRpcClient.leaveRoomSeat(currentRoom.id)
+                } else {
+                    SupabaseRpcClient.joinRoomSeat(currentRoom.id, seatIndex + 1)
+                }
+            }.onFailure {
+                showToast("⚠️ تعذر تحديث المايك في قاعدة البيانات")
+            }
+        }
 
         if (targetSeat.isLocked && currentRoom.myRoleInRoom == RoomPermissionRole.MEMBER) {
             showToast("🔒 هذا المايك مغلق حالياً")
@@ -1286,6 +1299,15 @@ class MainVoiceViewModel : ViewModel() {
         if (me.goldCoins < totalCost) {
             showToast("⚠️ رصيد العملات الذهبية غير كافٍ، يرجى شحن المحفظة")
             return
+        }
+        val currentRoomId = _activeRoom.value?.id
+        val receiverId = _activeRoom.value?.seats?.firstOrNull { it.occupantName == receiverName && it.occupantUserId != null }?.occupantUserId
+        val giftUuid = gift.id
+        if (currentRoomId != null && receiverId != null && runCatching { java.util.UUID.fromString(currentRoomId) }.isSuccess && runCatching { java.util.UUID.fromString(receiverId) }.isSuccess && runCatching { java.util.UUID.fromString(giftUuid) }.isSuccess) {
+            viewModelScope.launch {
+                runCatching { SupabaseRpcClient.sendGift(me.uuid, receiverId, currentRoomId, giftUuid, comboCount) }
+                    .onFailure { showToast("⚠️ لم تُسجل الهدية في قاعدة البيانات") }
+            }
         }
         _userProfile.update {
             it.copy(

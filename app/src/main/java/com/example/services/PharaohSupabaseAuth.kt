@@ -32,7 +32,7 @@ object PharaohSupabaseAuth {
         return "$normalized@accounts.pharaohparty.local"
     }
 
-    suspend fun loginOrCreate(username: String, credential: String, nickname: String?): String =
+    suspend fun loginOrCreate(username: String, credential: String, nickname: String?, allowCreate: Boolean): String =
         withContext(Dispatchers.IO) {
             val email = accountEmail(username)
             val login = runCatching {
@@ -46,7 +46,7 @@ object PharaohSupabaseAuth {
                 )
             }.getOrNull()
 
-            val response = login ?: authRequest(
+            val response = if (login != null) login else if (allowCreate) authRequest(
                 "POST",
                 "/auth/v1/signup",
                 JSONObject().apply {
@@ -57,7 +57,7 @@ object PharaohSupabaseAuth {
                         put("username", username.trim())
                     })
                 }
-            )
+            ) else error("بيانات الدخول غير صحيحة أو الحساب غير موجود.")
 
             val access = response.optString("access_token").takeIf { it.isNotBlank() }
             val id = response.optJSONObject("user")?.optString("id")?.takeIf { it.isNotBlank() }

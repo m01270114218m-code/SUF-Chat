@@ -32,6 +32,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -57,6 +58,7 @@ import coil.compose.AsyncImage
 import com.example.R
 import com.example.config.DynamicThemeManager
 import com.example.models.FrameStyle3D
+import com.example.services.RemoteVisualCatalogStore
 import com.example.models.SvgaEffectType
 import kotlin.math.PI
 import kotlin.math.cos
@@ -189,6 +191,9 @@ fun Ornate3DAvatarWithFrame(
     onDoubleClick: (() -> Unit)? = null,
     onClick: (() -> Unit)? = null
 ) {
+    val remoteAssets by RemoteVisualCatalogStore.assets.collectAsState()
+    val remoteFrameUrl = remoteAssets.firstOrNull { it.area == "frame" && (it.key == frameStyle.name || it.key == "frame_${frameStyle.name}") }?.url
+
     val infiniteTransition = rememberInfiniteTransition(label = "circular_avatar_3d_frame")
     val orbitAngle by infiniteTransition.animateFloat(
         initialValue = 0f,
@@ -457,6 +462,18 @@ fun Ornate3DAvatarWithFrame(
                         color = if (isSpeaking) primaryWaveColor else frameStyle.primaryColor,
                         shape = CircleShape
                     )
+            )
+        }
+
+        // Server-managed transparent/animated frame asset. The DB asset is layered outside the photo.
+        if (!remoteFrameUrl.isNullOrBlank()) {
+            AsyncImage(
+                model = Uri.parse(remoteFrameUrl),
+                contentDescription = "إطار متحرك من لوحة التحكم",
+                contentScale = ContentScale.Fit,
+                modifier = Modifier
+                    .size(size * 1.34f)
+                    .clip(CircleShape)
             )
         }
 

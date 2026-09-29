@@ -3,7 +3,9 @@ package com.example.services
 import android.content.Context
 import com.example.config.SupabaseConfig
 import io.github.jan.supabase.auth.Auth
+import io.github.jan.supabase.postgrest.Postgrest
 import io.github.jan.supabase.auth.providers.Email
+import io.github.jan.supabase.postgrest.query.Columns
 import io.github.jan.supabase.createSupabaseClient
 
 object PharaohSupabaseAuth {
@@ -15,6 +17,7 @@ object PharaohSupabaseAuth {
                 alwaysAutoRefresh = true
                 autoLoadFromStorage = true
             }
+            install(Postgrest)
         }
     }
 
@@ -44,6 +47,16 @@ object PharaohSupabaseAuth {
             client.auth.currentUserOrNull()?.id
                 ?: error("تم إنشاء الحساب، لكن تأكيد البريد الإلكتروني مفعّل في Supabase. يجب تعطيل Confirm email حتى يدخل الحساب فوراً باسم الحساب وكلمة السر.")
         }
+    }
+
+    suspend fun loadProfile(userId: String): RemoteProfile {
+        return client.from("profiles").select(
+            columns = Columns.list(
+                "id,display_name,avatar_url,country,coins,diamonds,vip_level,display_id,equipped_frame_id,equipped_entry_welcome_id,is_host_agent,is_host_member,is_charge_agent,is_banned"
+            )
+        ) {
+            filter { eq("id", userId) }
+        }.decodeSingle<RemoteProfile>()
     }
 
     fun signOut() {

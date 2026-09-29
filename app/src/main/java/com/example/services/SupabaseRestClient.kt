@@ -8,18 +8,18 @@ import java.net.URL
 
 object SupabaseRestClient {
     private fun request(path: String): String =
-        (URL("\${SupabaseConfig.URL}/rest/v1/\$path").openConnection() as HttpURLConnection).let { connection ->
+        (URL("${SupabaseConfig.URL}/rest/v1/$path").openConnection() as HttpURLConnection).let { connection ->
             connection.requestMethod = "GET"
             connection.connectTimeout = 10_000
             connection.readTimeout = 15_000
             connection.setRequestProperty("apikey", SupabaseConfig.PUBLISHABLE_KEY)
-            connection.setRequestProperty("Authorization", "Bearer \${SupabaseConfig.PUBLISHABLE_KEY}")
+            connection.setRequestProperty("Authorization", "Bearer ${SupabaseConfig.PUBLISHABLE_KEY}")
             connection.setRequestProperty("Accept", "application/json")
             try {
                 val code = connection.responseCode
                 val stream = if (code in 200..299) connection.inputStream else connection.errorStream
                 val body = stream?.bufferedReader()?.use { it.readText() }.orEmpty()
-                if (code !in 200..299) error("Supabase REST \$code: \$body")
+                if (code !in 200..299) error("Supabase REST $code: $body")
                 body
             } finally {
                 connection.disconnect()

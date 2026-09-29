@@ -1,5 +1,6 @@
 name: Android APK
 # Supabase account integration build
+# Rebuild after authentication email-domain fix
 
 on:
   push:

@@ -2,7 +2,7 @@ name: Android APK
 
 on:
   push:
-    branches: [main]
+    branches: [main, replace-with-pharaoh-party]
     paths: ['app/**','Backend/**','build.gradle.kts','settings.gradle.kts','gradle/**','.github/workflows/android.yml']
   workflow_dispatch:
 

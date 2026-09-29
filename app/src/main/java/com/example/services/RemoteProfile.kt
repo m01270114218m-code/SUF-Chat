@@ -20,3 +20,10 @@ data class RemoteProfile(
     @SerialName("is_charge_agent") val isChargeAgent: Boolean = false,
     @SerialName("is_banned") val isBanned: Boolean = false
 )
+
+@kotlinx.serialization.Serializable
+data class InventoryUpsert(
+    @kotlinx.serialization.SerialName("user_id") val userId: String,
+    @kotlinx.serialization.SerialName("item_id") val itemId: String,
+    @kotlinx.serialization.SerialName("is_equipped") val isEquipped: Boolean
+)

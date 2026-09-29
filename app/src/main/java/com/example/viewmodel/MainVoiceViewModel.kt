@@ -1786,20 +1786,9 @@ class MainVoiceViewModel : ViewModel() {
     }
 
     fun rechargeGoldCoins(amount: Long) {
-        _userProfile.update { it.copy(goldCoins = it.goldCoins + amount) }
-        _walletTransactions.update {
-            listOf(
-                WalletTransactionItem(
-                    id = "tx_${System.currentTimeMillis()}",
-                    titleAr = "شحن رصيد عملات ذهبية",
-                    amountText = "+%,d 🪙".format(amount),
-                    dateText = "الآن",
-                    isPositive = true
-                )
-            ) + it
-        }
-        syncCurrentProfileToMasterTable()
-        showToast("🪙 تم شحن +%,d عملة ذهبية بنجاح!".format(amount))
+        // Direct client-side coin creation is intentionally disabled.
+        // Recharge is performed by a charge agent/admin and recorded in Supabase.
+        showToast("💳 الشحن يتم عبر وكيل الشحن من خلال قاعدة البيانات")
     }
 
     fun exchangeDiamondsToCoins(diamondsAmount: Long) {

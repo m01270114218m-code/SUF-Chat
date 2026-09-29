@@ -11,6 +11,7 @@ import com.example.data.RoomSettingsEntity
 import com.example.data.UserAccountEntity
 import com.example.data.ZadiraAppDao
 import com.example.data.ZadiraDatabase
+import com.example.services.PharaohSupabaseAuth
 import com.example.models.AppUserRole
 import com.example.models.CasualGameItem
 import com.example.models.ChargeAgentRewardItem
@@ -288,72 +289,101 @@ class MainVoiceViewModel : ViewModel() {
         nickname: String?,
         avatarType: String = "PRINCE"
     ) {
-        val (record, errorMsg) = MasterAppDatabaseTable.authenticateOrCreateAccount(
-            emailInput = email,
-            passwordInput = password,
-            nicknameInput = nickname ?: "",
-            avatarTypeInput = avatarType
-        )
-        if (errorMsg != null || record == null) {
-            _authErrorMessage.value = errorMsg ?: "تعذر تسجيل الدخول"
-            return
-        }
+        viewModelScope.launch {
+            try {
+                val username = email.trim()
+                val remoteUserId = PharaohSupabaseAuth.loginOrCreate(username, password, nickname)
+                val remoteProfile = PharaohSupabaseAuth.loadProfile(remoteUserId)
+                val syntheticEmail = username.lowercase().replace(" ", "_") + "@accounts.pharaohparty.local"
 
-        _authErrorMessage.value = null
-        _userProfile.value = record.profile
-        MasterAppDatabaseTable.bindDefaultRoomPermissionsForUser(record.profile.displayId, record.profile.uuid)
-
-        // Automatically bind the user's own room (room_1) to their ID as OWNER, room_2 as ADMIN, and resolve all rooms by ID
-        _rooms.update { list ->
-            list.map { room ->
-                val adjustedRoom = when (room.id) {
-                    "room_1" -> room.copy(
-                        roomDisplayId = record.profile.displayId,
-                        hostUserId = record.profile.uuid,
-                        hostName = record.profile.nickname,
-                        seats = room.seats.map { seat ->
-                            if (seat.seatIndex == 0) {
-                                seat.copy(
-                                    occupantUserId = record.profile.uuid,
-                                    occupantName = record.profile.nickname,
-                                    occupantDisplayId = record.profile.displayId,
-                                    occupantFrame = record.profile.frameStyle
-                                )
-                            } else seat
-                        }
-                    )
-                    "room_2" -> room.copy(
-                        adminUserIds = (room.adminUserIds + record.profile.uuid + record.profile.displayId).distinct()
-                    )
-                    else -> room
-                }
-                val autoRole = MasterAppDatabaseTable.resolveRoomRoleAutomaticallyById(
-                    room = adjustedRoom,
-                    userDisplayId = record.profile.displayId,
-                    userUuid = record.profile.uuid
+                val (record, localError) = MasterAppDatabaseTable.authenticateOrCreateAccount(
+                    emailInput = syntheticEmail,
+                    passwordInput = password,
+                    nicknameInput = remoteProfile.displayName,
+                    avatarTypeInput = avatarType
                 )
-                adjustedRoom.copy(myRoleInRoom = autoRole)
-            }
-        }
-
-        // Sync owned items from the account record
-        _storeItems.update { list ->
-            list.map { item ->
-                val owned = record.ownedItemIds.contains(item.id)
-                val equipped = when (item.category) {
-                    StoreItemCategory.FRAMES -> item.frameStyle == record.profile.frameStyle
-                    StoreItemCategory.ENTRY_MOUNTS -> item.nameAr == record.profile.entryWelcomeName
-                    StoreItemCategory.SPECIAL_IDS -> item.specialIdValue == record.profile.displayId
-                    StoreItemCategory.CHAT_BUBBLES -> item.nameAr == record.profile.equippedChatBubbleName
-                    StoreItemCategory.ROOM_THEMES -> item.roomThemeId == "PALACE_NIGHT"
+                if (localError != null || record == null) {
+                    _authErrorMessage.value = localError ?: "تعذر تحميل الحساب المحلي"
+                    return@launch
                 }
-                item.copy(isOwned = owned, isEquipped = equipped)
+
+                record.profile = record.profile.copy(
+                    uuid = remoteProfile.id,
+                    displayId = remoteProfile.displayId ?: record.profile.displayId,
+                    email = syntheticEmail,
+                    nickname = remoteProfile.displayName,
+                    customAvatarUri = remoteProfile.avatarUrl,
+                    countryFlag = if (remoteProfile.country == "EG") "🇪🇬" else record.profile.countryFlag,
+                    goldCoins = remoteProfile.coins,
+                    crystalDiamonds = remoteProfile.diamonds,
+                    vipTier = remoteProfile.vipLevel,
+                    isHostAgent = remoteProfile.isHostAgent,
+                    isHostMember = remoteProfile.isHostMember,
+                    isChargeAgent = remoteProfile.isChargeAgent,
+                    isBanned = remoteProfile.isBanned
+                )
+
+                if (remoteProfile.isBanned) {
+                    _authErrorMessage.value = "هذا الحساب محظور: لا يمكن الدخول إلى التطبيق."
+                    return@launch
+                }
+                _authErrorMessage.value = null
+                _userProfile.value = record.profile
+                MasterAppDatabaseTable.bindDefaultRoomPermissionsForUser(record.profile.displayId, record.profile.uuid)
+
+                _rooms.update { list ->
+                    list.map { room ->
+                        val adjustedRoom = when (room.id) {
+                            "room_1" -> room.copy(
+                                roomDisplayId = record.profile.displayId,
+                                hostUserId = record.profile.uuid,
+                                hostName = record.profile.nickname,
+                                seats = room.seats.map { seat ->
+                                    if (seat.seatIndex == 0) seat.copy(
+                                        occupantUserId = record.profile.uuid,
+                                        occupantName = record.profile.nickname,
+                                        occupantDisplayId = record.profile.displayId,
+                                        occupantFrame = record.profile.frameStyle
+                                    ) else seat
+                                }
+                            )
+                            "room_2" -> room.copy(adminUserIds = (room.adminUserIds + record.profile.uuid + record.profile.displayId).distinct())
+                            else -> room
+                        }
+                        adjustedRoom.copy(
+                            myRoleInRoom = MasterAppDatabaseTable.resolveRoomRoleAutomaticallyById(
+                                room = adjustedRoom,
+                                userDisplayId = record.profile.displayId,
+                                userUuid = record.profile.uuid
+                            )
+                        )
+                    }
+                }
+
+                _storeItems.update { list ->
+                    list.map { item ->
+                        val owned = record.ownedItemIds.contains(item.id)
+                        item.copy(
+                            isOwned = owned,
+                            isEquipped = when (item.category) {
+                                StoreItemCategory.FRAMES -> item.frameStyle == record.profile.frameStyle
+                                StoreItemCategory.ENTRY_MOUNTS -> item.nameAr == record.profile.entryWelcomeName
+                                StoreItemCategory.SPECIAL_IDS -> item.specialIdValue == record.profile.displayId
+                                StoreItemCategory.CHAT_BUBBLES -> item.nameAr == record.profile.equippedChatBubbleName
+                                StoreItemCategory.ROOM_THEMES -> item.roomThemeId == "PALACE_NIGHT"
+                            }
+                        )
+                    }
+                }
+
+                _isLoggedIn.value = true
+                syncCurrentProfileToMasterTable()
+                persistRoomsToDatabase()
+                showToast("👑 مرحباً " + record.profile.nickname + " • الحساب متصل بقاعدة البيانات • ID: " + record.profile.displayId)
+            } catch (e: Exception) {
+                _authErrorMessage.value = e.message ?: "تعذر تسجيل الدخول إلى قاعدة البيانات"
             }
         }
-        _isLoggedIn.value = true
-        syncCurrentProfileToMasterTable()
-        persistRoomsToDatabase()
-        showToast("👑 مرحباً بك ${record.profile.nickname} • معرف حسابك ID: ${record.profile.displayId}")
     }
 
     private fun syncCurrentProfileToMasterTable() {

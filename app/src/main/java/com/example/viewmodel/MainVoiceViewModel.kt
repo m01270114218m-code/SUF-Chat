@@ -12,6 +12,7 @@ import com.example.data.UserAccountEntity
 import com.example.data.ZadiraAppDao
 import com.example.data.ZadiraDatabase
 import com.example.services.PharaohSupabaseAuth
+import com.example.services.SupabaseRpcClient
 import com.example.models.AppUserRole
 import com.example.models.CasualGameItem
 import com.example.models.ChargeAgentRewardItem
@@ -386,6 +387,27 @@ class MainVoiceViewModel : ViewModel() {
         }
     }
 
+    private fun syncRemoteProfileToSupabase() {
+        val profile = _userProfile.value
+        viewModelScope.launch {
+            runCatching {
+                PharaohSupabaseAuth.syncProfile(
+                    userId = profile.uuid,
+                    displayName = profile.nickname,
+                    coins = profile.goldCoins,
+                    diamonds = profile.crystalDiamonds,
+                    vipLevel = profile.vipTier,
+                    frameId = profile.frameStyle.name,
+                    entryId = profile.entryWelcomeName,
+                    avatarUrl = profile.customAvatarUri,
+                    coverUrl = profile.customCoverUri
+                )
+            }.onFailure {
+                showToast("⚠️ تعذر مزامنة الحساب مع قاعدة البيانات")
+            }
+        }
+    }
+
     private fun syncCurrentProfileToMasterTable() {
         // 1. Auto-level up Wealth & Charisma if XP reached target
         _userProfile.update { current ->
@@ -737,6 +759,7 @@ class MainVoiceViewModel : ViewModel() {
             }
         }
         syncCurrentProfileToMasterTable()
+        syncRemoteProfileToSupabase()
         showToast("📷 تم تحديث صورة حسابك الشخصي من تخزين الجهاز بنجاح!")
     }
 
@@ -751,6 +774,7 @@ class MainVoiceViewModel : ViewModel() {
             _inspectedAccountProfile.value = updatedMe
         }
         syncCurrentProfileToMasterTable()
+        syncRemoteProfileToSupabase()
         showToast("🖼️ تم تحديث غلاف الحساب الشخصي من تخزين الجهاز بنجاح!")
     }
 
@@ -1482,6 +1506,7 @@ class MainVoiceViewModel : ViewModel() {
             }
         }
         syncCurrentProfileToMasterTable()
+        syncRemoteProfileToSupabase()
         showToast(
             if (item.isOwned) "✨ تم تفعيل ${item.nameAr} على حسابك"
             else "🛍️ تم شراء وتفعيل ${item.nameAr} بنجاح!"
@@ -1501,6 +1526,7 @@ class MainVoiceViewModel : ViewModel() {
             MasterAppDatabaseTable.grantEntryMountToUserById(targetUserId, item.nameAr, item.id)
         }
         syncCurrentProfileToMasterTable()
+        syncRemoteProfileToSupabase()
         showToast("🎁 تم إهداء ${item.nameAr} إلى المستخدم ID: $targetUserId بنجاح!")
     }
 
@@ -1525,6 +1551,7 @@ class MainVoiceViewModel : ViewModel() {
             )
         }
         syncCurrentProfileToMasterTable()
+        syncRemoteProfileToSupabase()
         showToast("👑 تم تفعيل القسم الملكي VIP $targetTier مع الإطار الدائري والدخولية!")
     }
 

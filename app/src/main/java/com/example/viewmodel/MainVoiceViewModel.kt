@@ -37,6 +37,7 @@ import com.example.models.SvgaEffectType
 import com.example.models.UserProfile
 import com.example.models.VoiceRoomModel
 import com.example.models.WalletTransactionItem
+import org.json.JSONObject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -843,31 +844,50 @@ class MainVoiceViewModel : ViewModel() {
         customCoverUri: String? = null
     ) {
         val me = _userProfile.value
-        val newRoomId = "room_${System.currentTimeMillis()}"
-        val defaultVisuals = MasterAppDatabaseTable.roomAndAppVisualConfigFlow.value
-        MasterAppDatabaseTable.setRoomOwnerByIdInDatabase(newRoomId, me.displayId)
-        val newRoom = VoiceRoomModel(
-            id = newRoomId,
-            roomDisplayId = me.displayId,
-            titleAr = roomTitleAr.ifBlank { "غرفة ${me.nickname} الملكية 7D" },
-            announcementAr = announcementAr.ifBlank { "أهلاً وسهلاً بالجميع في غرفتنا الملكية 👑" },
-            categoryAr = categoryAr,
-            countryFlag = me.countryFlag,
-            hostName = me.nickname,
-            hostUserId = me.uuid,
-            myRoleInRoom = RoomPermissionRole.OWNER,
-            onlineCount = 1,
-            heatScore = 9999L,
-            coverBadgeText = "👑 7D",
-            customCoverImageUri = customCoverUri ?: me.customAvatarUri,
-            hostCustomAvatarUri = me.customAvatarUri,
-            backgroundStyleId = defaultVisuals.defaultRoomBackgroundStyleId,
-            micShapeStyleId = defaultVisuals.defaultMicShapeStyleId,
-            seats = buildSeatsForRoom(me.nickname, me.displayId, me.frameStyle, me.customAvatarUri)
-        )
-        _rooms.update { listOf(newRoom) + it }
-        persistRoomsToDatabase()
-        enterVoiceRoom(newRoom)
+        viewModelScope.launch {
+            try {
+                val raw = SupabaseRpcClient.createRoom(
+                    name = roomTitleAr.ifBlank { "غرفة " + me.nickname },
+                    title = roomTitleAr.ifBlank { "غرفة " + me.nickname + " الملكية" },
+                    type = "VOICE",
+                    privacy = "public",
+                    country = "EG",
+                    coverUrl = customCoverUri?.takeIf { it.startsWith("http") },
+                    maxSeats = 10
+                )
+                val remoteRoomId = runCatching { JSONObject(raw).optString("id") }
+                    .getOrDefault("")
+                    .ifBlank { error("قاعدة البيانات لم تُرجع معرف الغرفة") }
+
+                val defaultVisuals = MasterAppDatabaseTable.roomAndAppVisualConfigFlow.value
+                MasterAppDatabaseTable.setRoomOwnerByIdInDatabase(remoteRoomId, me.displayId)
+                val newRoom = VoiceRoomModel(
+                    id = remoteRoomId,
+                    roomDisplayId = me.displayId,
+                    titleAr = roomTitleAr.ifBlank { "غرفة " + me.nickname + " الملكية 7D" },
+                    announcementAr = announcementAr.ifBlank { "أهلاً وسهلاً بالجميع في غرفتنا الملكية 👑" },
+                    categoryAr = categoryAr,
+                    countryFlag = me.countryFlag,
+                    hostName = me.nickname,
+                    hostUserId = me.uuid,
+                    myRoleInRoom = RoomPermissionRole.OWNER,
+                    onlineCount = 1,
+                    heatScore = 9999L,
+                    coverBadgeText = "👑 7D",
+                    customCoverImageUri = customCoverUri,
+                    hostCustomAvatarUri = me.customAvatarUri,
+                    backgroundStyleId = defaultVisuals.defaultRoomBackgroundStyleId,
+                    micShapeStyleId = defaultVisuals.defaultMicShapeStyleId,
+                    seats = buildSeatsForRoom(me.nickname, me.displayId, me.frameStyle, me.customAvatarUri)
+                )
+                _rooms.update { listOf(newRoom) + it }
+                persistRoomsToDatabase()
+                enterVoiceRoom(newRoom)
+                showToast("🏠 تم إنشاء الغرفة وحفظها فعلياً في قاعدة البيانات")
+            } catch (e: Exception) {
+                showToast("⚠️ لم يتم إنشاء الغرفة في قاعدة البيانات: " + (e.message ?: "خطأ غير معروف"))
+            }
+        }
     }
 
     fun leaveVoiceRoom() {

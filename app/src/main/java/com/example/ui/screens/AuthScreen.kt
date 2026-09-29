@@ -85,516 +85,120 @@ fun AuthScreen(
     authErrorMessage: String? = null,
     onLoginSuccess: (email: String, password: String, nickname: String?, avatarType: String) -> Unit
 ) {
-    var usernameOrEmail by remember { mutableStateOf("") }
+    var username by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
-    var agreedToTerms by remember { mutableStateOf(true) }
-    var localErrorText by remember { mutableStateOf<String?>(null) }
+    var nickname by remember { mutableStateOf("") }
     var isRegisterMode by remember { mutableStateOf(false) }
-    var registerNickname by remember { mutableStateOf("") }
-    var showOtpDialog by remember { mutableStateOf(false) }
-    var showPhoneLoginDialog by remember { mutableStateOf(false) }
-    var phoneInput by remember { mutableStateOf("") }
-
-    val goldPrimary = Color(0xFFFFC72C)
-    val goldText = Color(0xFFF5B82E)
-    val fieldBorder = Color(0xFF3A3222)
+    var agreed by remember { mutableStateOf(true) }
+    var localError by remember { mutableStateOf<String?>(null) }
 
     Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(
-                Brush.verticalGradient(
-                    colors = listOf(
-                        Color(0xFF0E091C),
-                        Color(0xFF090710),
-                        Color(0xFF060508)
-                    )
-                )
-            )
+        modifier = Modifier.fillMaxSize().background(
+            Brush.verticalGradient(listOf(Color(0xFF0E091C), Color(0xFF090710), Color(0xFF060508)))
+        )
     ) {
-        // Luxury radial ambient glow circles in background
-        Canvas(modifier = Modifier.fillMaxSize()) {
+        Canvas(Modifier.fillMaxSize()) {
             drawCircle(
-                brush = Brush.radialGradient(
-                    colors = listOf(
-                        Color(0xFF58287F).copy(alpha = 0.45f),
-                        Color(0xFF3D2E08).copy(alpha = 0.32f),
-                        Color.Transparent
-                    ),
-                    center = Offset(size.width * 0.50f, size.height * 0.16f),
-                    radius = size.width * 0.72f
-                ),
-                center = Offset(size.width * 0.50f, size.height * 0.16f),
-                radius = size.width * 0.72f
-            )
-
-            drawCircle(
-                brush = Brush.radialGradient(
-                    colors = listOf(
-                        Color(0xFF432C08).copy(alpha = 0.42f),
-                        Color.Transparent
-                    ),
-                    center = Offset(size.width * 0.85f, size.height * 0.88f),
-                    radius = size.width * 0.60f
-                ),
-                center = Offset(size.width * 0.85f, size.height * 0.88f),
-                radius = size.width * 0.60f
+                brush = Brush.radialGradient(listOf(Color(0xFF58287F).copy(alpha = .45f), Color.Transparent)),
+                center = Offset(size.width * .5f, size.height * .16f),
+                radius = size.width * .72f
             )
         }
-
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier
-                .fillMaxSize()
-                .statusBarsPadding()
-                .navigationBarsPadding()
-                .verticalScroll(rememberScrollState())
-                .padding(horizontal = 24.dp, vertical = 24.dp)
+            modifier = Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding()
+                .verticalScroll(rememberScrollState()).padding(horizontal = 24.dp, vertical = 24.dp)
         ) {
-            Spacer(modifier = Modifier.height(10.dp))
-
-            // 1. New Royal Voice App Emblem with Generated 3D Logo & Animated Crown Ring
+            Spacer(Modifier.height(12.dp))
             RoyalVoiceAppLogoEmblem()
-
-            Spacer(modifier = Modifier.height(18.dp))
-
-            // 2. New App Name in Login Screen (Bilingual Royal Title + Badge)
+            Spacer(Modifier.height(18.dp))
+            Text("فــرعــون بــارتــي 👑", color = Color(0xFFFFC72C), fontSize = 28.sp, fontWeight = FontWeight.Black)
+            Spacer(Modifier.height(6.dp))
             Text(
-                text = "R O Y A L   V O I C E",
-                color = goldPrimary,
-                fontSize = 28.sp,
-                fontWeight = FontWeight.Black,
-                fontFamily = FontFamily.SansSerif,
-                letterSpacing = 3.sp,
+                if (isRegisterMode) "إنشاء حساب جديد — الاسم وكلمة السر فقط" else "تسجيل الدخول واستعادة حسابك من قاعدة البيانات",
+                color = Color(0xFFFFF3C4), fontSize = 14.sp, fontWeight = FontWeight.SemiBold,
                 textAlign = TextAlign.Center
             )
+            Spacer(Modifier.height(26.dp))
 
-            Spacer(modifier = Modifier.height(4.dp))
-
-            Text(
-                text = "رويال فويس بلس 👑",
-                color = Color(0xFFFFF3C4),
-                fontSize = 20.sp,
-                fontWeight = FontWeight.ExtraBold,
-                textAlign = TextAlign.Center
-            )
-
-            Spacer(modifier = Modifier.height(6.dp))
-
-            // 3. Enhanced Subtitle
-            Box(
-                modifier = Modifier
-                    .clip(RoundedCornerShape(50))
-                    .background(Color(0xFF1F1735).copy(alpha = 0.85f))
-                    .border(0.8.dp, goldPrimary.copy(alpha = 0.45f), RoundedCornerShape(50))
-                    .padding(horizontal = 16.dp, vertical = 5.dp)
-            ) {
-                Text(
-                    text = if (isRegisterMode) "✨ إنشاء حساب ملكي جديد في عالم الفخامة" else "✨ عالم الدردشة الصوتية الملكية والغرف الفاخرة",
-                    color = Color(0xFFE5E0D5),
-                    fontSize = 13.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    textAlign = TextAlign.Center
-                )
-            }
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            // Optional Nickname field when creating a new account
             if (isRegisterMode) {
                 SeefoDarkInputField(
-                    value = registerNickname,
-                    onValueChange = {
-                        registerNickname = it
-                        localErrorText = null
-                    },
-                    placeholder = "الاسم المستعار في التطبيق (مثال: محمد فرعون)",
-                    isPassword = false,
-                    trailingIcon = {
-                        Icon(
-                            imageVector = Icons.Outlined.Person,
-                            contentDescription = null,
-                            tint = goldText,
-                            modifier = Modifier.size(22.dp)
-                        )
-                    },
-                    modifier = Modifier.testTag("nickname_input")
+                    nickname, { nickname = it; localError = null }, "الاسم الظاهر داخل التطبيق",
+                    false, { Icon(Icons.Outlined.Person, null, tint = Color(0xFFF5B82E), modifier = Modifier.size(22.dp)) },
+                    Modifier.testTag("nickname_input")
                 )
-                Spacer(modifier = Modifier.height(14.dp))
+                Spacer(Modifier.height(14.dp))
             }
 
-            // 4. Input Field 1: "اسم المستخدم أو البريد الإلكتروني"
             SeefoDarkInputField(
-                value = usernameOrEmail,
-                onValueChange = {
-                    usernameOrEmail = it
-                    localErrorText = null
-                },
-                placeholder = "اسم المستخدم أو البريد الإلكتروني",
-                isPassword = false,
-                trailingIcon = {
-                    Icon(
-                        imageVector = Icons.Outlined.Email,
-                        contentDescription = "البريد الإلكتروني",
-                        tint = goldText,
-                        modifier = Modifier.size(22.dp)
-                    )
-                },
-                modifier = Modifier.testTag("email_input")
+                username, { username = it; localError = null }, "اسم الحساب (مثال: pharaoh123)",
+                false, { Icon(Icons.Outlined.Person, null, tint = Color(0xFFF5B82E), modifier = Modifier.size(22.dp)) },
+                Modifier.testTag("username_input")
             )
-
-            Spacer(modifier = Modifier.height(14.dp))
-
-            // 5. Input Field 2: "كلمة المرور"
+            Spacer(Modifier.height(14.dp))
             SeefoDarkInputField(
-                value = password,
-                onValueChange = {
-                    password = it
-                    localErrorText = null
-                },
-                placeholder = "كلمة المرور",
-                isPassword = true,
-                trailingIcon = {
-                    Icon(
-                        imageVector = Icons.Outlined.Lock,
-                        contentDescription = "كلمة المرور",
-                        tint = goldText,
-                        modifier = Modifier.size(22.dp)
-                    )
-                },
-                modifier = Modifier.testTag("password_input")
+                password, { password = it; localError = null }, "كلمة المرور",
+                true, { Icon(Icons.Outlined.Lock, null, tint = Color(0xFFF5B82E), modifier = Modifier.size(22.dp)) },
+                Modifier.testTag("password_input")
             )
 
-            Spacer(modifier = Modifier.height(18.dp))
-
-            // 6. "نسيت كلمة المرور؟ استعادة بـ OTP"
-            Text(
-                text = "نسيت كلمة المرور؟ استعادة بـ OTP",
-                color = goldText,
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Bold,
-                textAlign = TextAlign.Center,
-                modifier = Modifier
-                    .clickable { showOtpDialog = true }
-                    .padding(vertical = 4.dp)
-            )
-
-            Spacer(modifier = Modifier.height(14.dp))
-
-            // 7. Privacy Policy & Terms of Use Checkbox Row
+            Spacer(Modifier.height(18.dp))
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.End,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable { agreedToTerms = !agreedToTerms }
-                    .padding(horizontal = 4.dp)
+                modifier = Modifier.fillMaxWidth().clickable { agreed = !agreed }.padding(4.dp)
             ) {
-                Text(
-                    text = buildAnnotatedString {
-                        withStyle(SpanStyle(color = Color(0xFFE0DDD5), fontWeight = FontWeight.Medium)) {
-                            append("قرأت ")
-                        }
-                        withStyle(
-                            SpanStyle(
-                                color = goldPrimary,
-                                textDecoration = TextDecoration.Underline,
-                                fontWeight = FontWeight.Bold
-                            )
-                        ) {
-                            append("سياسة الخصوصية")
-                        }
-                        withStyle(SpanStyle(color = Color(0xFFE0DDD5), fontWeight = FontWeight.Medium)) {
-                            append(" و ")
-                        }
-                        withStyle(
-                            SpanStyle(
-                                color = goldPrimary,
-                                textDecoration = TextDecoration.Underline,
-                                fontWeight = FontWeight.Bold
-                            )
-                        ) {
-                            append("اتفاقية الاستخدام")
-                        }
-                    },
-                    fontSize = 13.sp,
-                    textAlign = TextAlign.End
-                )
-
-                Spacer(modifier = Modifier.width(12.dp))
-
-                // Custom Square Checkbox
                 Box(
                     contentAlignment = Alignment.Center,
-                    modifier = Modifier
-                        .size(22.dp)
-                        .clip(RoundedCornerShape(6.dp))
-                        .background(if (agreedToTerms) Color(0xFF281F08) else Color.Transparent)
-                        .border(
-                            width = 1.4.dp,
-                            color = if (agreedToTerms) goldPrimary else Color(0xFF757268),
-                            shape = RoundedCornerShape(6.dp)
-                        )
-                ) {
-                    if (agreedToTerms) {
-                        Icon(
-                            imageVector = Icons.Outlined.Check,
-                            contentDescription = null,
-                            tint = goldPrimary,
-                            modifier = Modifier.size(16.dp)
-                        )
-                    }
-                }
+                    modifier = Modifier.size(22.dp).clip(RoundedCornerShape(6.dp))
+                        .background(if (agreed) Color(0xFF281F08) else Color.Transparent)
+                        .border(1.4.dp, if (agreed) Color(0xFFFFC72C) else Color.Gray, RoundedCornerShape(6.dp))
+                ) { if (agreed) Icon(Icons.Outlined.Check, null, tint = Color(0xFFFFC72C), modifier = Modifier.size(16.dp)) }
+                Spacer(Modifier.width(10.dp))
+                Text("أوافق على شروط استخدام فرعون بارتي", color = Color(0xFFE0DDD5), fontSize = 13.sp)
             }
 
-            val shownError = localErrorText ?: authErrorMessage
+            val shownError = localError ?: authErrorMessage
             if (shownError != null) {
-                Spacer(modifier = Modifier.height(10.dp))
-                Text(
-                    text = shownError,
-                    color = Color(0xFFFF5252),
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Bold,
-                    textAlign = TextAlign.Center
-                )
+                Spacer(Modifier.height(10.dp))
+                Text(shownError, color = Color(0xFFFF5252), fontSize = 12.sp, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
             }
 
-            Spacer(modifier = Modifier.height(20.dp))
-
-            // 8. Bright Golden Primary Button: "تسجيل الدخول"
+            Spacer(Modifier.height(20.dp))
             Box(
                 contentAlignment = Alignment.Center,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(58.dp)
-                    .shadow(12.dp, RoundedCornerShape(18.dp), spotColor = Color(0xFFFFB300))
+                modifier = Modifier.fillMaxWidth().height(58.dp).shadow(12.dp, RoundedCornerShape(18.dp))
                     .clip(RoundedCornerShape(18.dp))
-                    .background(
-                        Brush.horizontalGradient(
-                            colors = listOf(
-                                Color(0xFFFFDF73),
-                                Color(0xFFFFB800),
-                                Color(0xFFE69500)
-                            )
-                        )
-                    )
+                    .background(Brush.horizontalGradient(listOf(Color(0xFFFFDF73), Color(0xFFFFB800), Color(0xFFE69500))))
                     .border(1.2.dp, Color(0xFFFFF6D6), RoundedCornerShape(18.dp))
                     .clickable {
-                        if (!agreedToTerms) {
-                            localErrorText = "يرجى الموافقة على سياسة الخصوصية واتفاقية الاستخدام أولاً"
-                            return@clickable
-                        }
-                        val rawInput = usernameOrEmail.trim().ifBlank { "محمد فرعون" }
-                        val normalizedEmail = if (rawInput.contains("@")) {
-                            rawInput
+                        if (!agreed) {
+                            localError = "يرجى الموافقة على الشروط أولاً"
+                        } else if (username.trim().length < 3) {
+                            localError = "اسم الحساب يجب أن يكون 3 أحرف أو أكثر"
+                        } else if (password.length < 6) {
+                            localError = "كلمة المرور يجب أن تكون 6 أحرف أو أكثر"
                         } else {
-                            "${rawInput.replace(" ", "_")}@royalvoice.live"
+                            onLoginSuccess(username.trim(), password, nickname.trim().ifBlank { username.trim() }, "PRINCE")
                         }
-                        val effectivePass = password.ifBlank { "123456" }
-                        val chosenName = when {
-                            registerNickname.isNotBlank() -> registerNickname.trim()
-                            !rawInput.contains("@") && rawInput.isNotBlank() -> rawInput
-                            else -> "محمد فرعون"
-                        }
-                        onLoginSuccess(
-                            normalizedEmail,
-                            effectivePass,
-                            chosenName,
-                            "PRINCE"
-                        )
                     }
                     .testTag("login_submit_button")
             ) {
-                Text(
-                    text = if (isRegisterMode) "إنشاء الحساب وتسجيل الدخول 👑" else "تسجيل الدخول الملكي 👑",
-                    color = Color(0xFF140D02),
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Black
-                )
+                Text(if (isRegisterMode) "إنشاء الحساب وتسجيل الدخول 👑" else "تسجيل الدخول 👑", color = Color(0xFF140D02), fontSize = 18.sp, fontWeight = FontWeight.Black)
             }
 
-            Spacer(modifier = Modifier.height(14.dp))
-
-            // 9. Phone Login Button: "تسجيل الدخول برقم الهاتف"
-            Box(
-                contentAlignment = Alignment.Center,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp)
-                    .clip(RoundedCornerShape(18.dp))
-                    .background(
-                        Brush.horizontalGradient(
-                            listOf(Color(0xFF0C1D13), Color(0xFF122B1C))
-                        )
-                    )
-                    .border(1.3.dp, Color(0xFF34D399), RoundedCornerShape(18.dp))
-                    .clickable { showPhoneLoginDialog = true }
-                    .testTag("phone_login_button")
-            ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Center
-                ) {
-                    Text(
-                        text = "تسجيل الدخول برقم الهاتف",
-                        color = Color(0xFF6EE7B7),
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.ExtraBold
-                    )
-                    Spacer(modifier = Modifier.width(10.dp))
-                    Icon(
-                        imageVector = Icons.Outlined.PhoneAndroid,
-                        contentDescription = null,
-                        tint = Color(0xFF34D399),
-                        modifier = Modifier.size(20.dp)
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(14.dp))
-
-            // 10. Google Login Button: "المتابعة باستخدام جوجل"
-            Box(
-                contentAlignment = Alignment.Center,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp)
-                    .clip(RoundedCornerShape(18.dp))
-                    .background(
-                        Brush.horizontalGradient(
-                            listOf(Color(0xFF1A162B), Color(0xFF231D38))
-                        )
-                    )
-                    .border(1.3.dp, Color(0xFF7C69A8), RoundedCornerShape(18.dp))
-                    .clickable {
-                        val rawName = usernameOrEmail.trim().ifBlank { "محمد فرعون" }
-                        onLoginSuccess(
-                            "mohamed.pharaoh@gmail.com",
-                            "google_auth_pass",
-                            rawName,
-                            "PRINCE"
-                        )
-                    }
-                    .testTag("google_login_button")
-            ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Center
-                ) {
-                    Text(
-                        text = "المتابعة باستخدام جوجل",
-                        color = Color.White,
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.ExtraBold
-                    )
-                    Spacer(modifier = Modifier.width(12.dp))
-                    Text(
-                        text = "G",
-                        color = Color(0xFFFFD54F),
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.Black
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            // 11. Bottom Link: "ليس لديك حساب؟ إنشاء حساب جديد"
-            Box(
-                modifier = Modifier
-                    .clip(RoundedCornerShape(50))
-                    .background(Color(0xFF1A1426))
-                    .border(1.dp, goldPrimary.copy(alpha = 0.4f), RoundedCornerShape(50))
-                    .clickable { isRegisterMode = !isRegisterMode }
-                    .padding(horizontal = 22.dp, vertical = 10.dp)
-            ) {
-                Text(
-                    text = if (isRegisterMode) "لديك حساب بالفعل؟ تسجيل الدخول" else "ليس لديك حساب؟ إنشاء حساب جديد ✨",
-                    color = goldPrimary,
-                    fontSize = 15.sp,
-                    fontWeight = FontWeight.ExtraBold,
-                    textAlign = TextAlign.Center
-                )
-            }
-        }
-
-        // Phone Login Dialog
-        if (showPhoneLoginDialog) {
-            AlertDialog(
-                onDismissRequest = { showPhoneLoginDialog = false },
-                containerColor = Color(0xFF141122),
-                title = {
-                    Text(
-                        text = "📱 تسجيل الدخول برقم الهاتف",
-                        color = goldPrimary,
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.ExtraBold
-                    )
-                },
-                text = {
-                    OutlinedTextField(
-                        value = phoneInput,
-                        onValueChange = { phoneInput = it },
-                        placeholder = { Text("+201000000000", color = Color.Gray) },
-                        singleLine = true,
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedTextColor = Color.White,
-                            unfocusedTextColor = Color.White,
-                            focusedBorderColor = Color(0xFF34D399),
-                            unfocusedBorderColor = fieldBorder
-                        ),
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                },
-                confirmButton = {
-                    TextButton(
-                        onClick = {
-                            showPhoneLoginDialog = false
-                            val phoneClean = phoneInput.trim().ifBlank { "01000000000" }
-                            onLoginSuccess(
-                                "$phoneClean@phone.royalvoice.live",
-                                "123456",
-                                "محمد فرعون",
-                                "PRINCE"
-                            )
-                        }
-                    ) {
-                        Text("دخول الآن", color = Color(0xFF34D399), fontWeight = FontWeight.ExtraBold)
-                    }
-                },
-                dismissButton = {
-                    TextButton(onClick = { showPhoneLoginDialog = false }) {
-                        Text("إلغاء", color = Color.White)
-                    }
-                }
+            Spacer(Modifier.height(18.dp))
+            Text(
+                if (isRegisterMode) "لديك حساب؟ تسجيل الدخول" else "ليس لديك حساب؟ إنشاء حساب جديد",
+                color = Color(0xFFFFC72C), fontSize = 15.sp, fontWeight = FontWeight.ExtraBold,
+                modifier = Modifier.clip(RoundedCornerShape(50)).background(Color(0xFF1A1426))
+                    .border(1.dp, Color(0xFFFFC72C).copy(alpha = .4f), RoundedCornerShape(50))
+                    .clickable { isRegisterMode = !isRegisterMode }.padding(horizontal = 22.dp, vertical = 12.dp)
             )
-        }
 
-        // OTP Recovery Dialog
-        if (showOtpDialog) {
-            AlertDialog(
-                onDismissRequest = { showOtpDialog = false },
-                containerColor = Color(0xFF141122),
-                title = {
-                    Text(
-                        text = "🔐 استعادة كلمة المرور بـ OTP",
-                        color = goldPrimary,
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.ExtraBold
-                    )
-                },
-                text = {
-                    Text(
-                        text = "أدخل بريدك الإلكتروني أو رقم هاتفك في حقل المستخدم ثم اضغط إرسال رمز التحقق الفوري OTP.",
-                        color = Color.White.copy(alpha = 0.85f),
-                        fontSize = 13.sp
-                    )
-                },
-                confirmButton = {
-                    TextButton(onClick = { showOtpDialog = false }) {
-                        Text("إرسال الرمز", color = goldPrimary, fontWeight = FontWeight.ExtraBold)
-                    }
-                }
+            Spacer(Modifier.height(18.dp))
+            Text(
+                "نفس اسم الحساب + كلمة السر = نفس الحساب والرصيد والمقتنيات والبيانات المحفوظة",
+                color = Color.White.copy(alpha = .65f), fontSize = 12.sp, textAlign = TextAlign.Center
             )
         }
     }

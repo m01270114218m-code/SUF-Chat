@@ -16,7 +16,7 @@ object SupabaseRpcClient {
             connection.connectTimeout = 10_000
             connection.readTimeout = 15_000
             connection.setRequestProperty("apikey", SupabaseConfig.PUBLISHABLE_KEY)
-            connection.setRequestProperty("Authorization", "Bearer ${SupabaseConfig.PUBLISHABLE_KEY}")
+            connection.setRequestProperty("Authorization", "Bearer ${PharaohSupabaseAuth.accessToken() ?: SupabaseConfig.PUBLISHABLE_KEY}")
             connection.setRequestProperty("Content-Type", "application/json")
             connection.setRequestProperty("Accept", "application/json")
             connection.outputStream.use { it.write(body.toString().toByteArray(Charsets.UTF_8)) }

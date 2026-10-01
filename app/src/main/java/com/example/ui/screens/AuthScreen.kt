@@ -275,7 +275,7 @@ private fun SeefoDarkInputField(
                     cursorBrush = SolidColor(Color(0xFFFFC72C)),
                     visualTransformation = if (isPassword) PasswordVisualTransformation() else androidx.compose.ui.text.input.VisualTransformation.None,
                     keyboardOptions = KeyboardOptions(
-                        keyboardType = if (isPassword) KeyboardType.Password else KeyboardType.Email
+                        keyboardType = if (isPassword) KeyboardType.Password else KeyboardType.Ascii
                     ),
                     modifier = Modifier.fillMaxWidth()
                 )

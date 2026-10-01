@@ -76,7 +76,7 @@ object PharaohSupabaseAuth {
         val encoded = java.net.URLEncoder.encode(userId, "UTF-8")
         val raw = restRequest(
             "GET",
-            "/rest/v1/profiles?select=id,display_name,avatar_url,country,coins,diamonds,vip_level,display_id,equipped_frame_id,equipped_entry_welcome_id,is_host_agent,is_host_member,is_charge_agent,is_banned,username&id=eq.$encoded"
+            "/rest/v1/profiles?select=id,display_name,avatar_url,country,coins,diamonds,vip_level,display_id,equipped_frame_id,equipped_entry_welcome_id,is_host_agent,is_host_member,is_charge_agent,is_banned&id=eq.$encoded"
         )
         val item = JSONArray(raw).optJSONObject(0) ?: error("ملف المستخدم غير موجود في Supabase")
         return Json.decodeFromString<RemoteProfile>(item.toString())

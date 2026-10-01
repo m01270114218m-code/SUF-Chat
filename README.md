@@ -20,3 +20,6 @@ View your app in AI Studio: https://ai.studio/apps/2022594a-2e22-414f-aff5-71628
 5. Remove this line from the app's `build.gradle.kts` file: `signingConfig = signingConfigs.getByName("debugConfig")`
 6. Run the app on an emulator or physical device
 7. If you have already published your app in AI Studio, please [request upload key reset](https://support.google.com/googleplay/android-developer/answer/9842756#zippy=%2Crequest-an-upload-key-reset) in Google Play Console.
+
+
+<!-- Pharaoh Party Supabase username/password authentication build verification trigger: 2026-10-01 -->

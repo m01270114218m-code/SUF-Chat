@@ -40,6 +40,40 @@ jobs:
           "$SDKMANAGER" "platform-tools" "platforms;android-36" "build-tools;36.0.0"
           echo "$ANDROID_SDK_ROOT/platform-tools" >> "$GITHUB_PATH"
 
+      - name: Test Supabase username and quick authentication
+        shell: bash
+        env:
+          SUPABASE_URL: https://fdvgpdfesvigtvmzjhnt.supabase.co
+          SUPABASE_KEY: sb_publishable_gW5LE2T9Y6rfv63DMHnYew_64sa1cOL
+        run: |
+          set -euo pipefail
+          USERNAME="ci_user_$GITHUB_RUN_ID"
+          PASSWORD="CiTest_$GITHUB_RUN_ID_A9!"
+          DISPLAY_NAME="CI Login Test"
+          AUTH_URL="$SUPABASE_URL/functions/v1/pharaoh-auth"
+
+          register_json="$(curl --fail-with-body -sS -X POST "$AUTH_URL"             -H "apikey: $SUPABASE_KEY" -H "Content-Type: application/json"             --data "$(jq -nc --arg u "$USERNAME" --arg p "$PASSWORD" --arg n "$DISPLAY_NAME" '{mode:"register",username:$u,password:$p,display_name:$n}')")"
+          echo "$register_json" | jq -e '.ok == true and (.user_id | length) > 0 and (.access_token | length) > 0' >/dev/null
+
+          login_json="$(curl --fail-with-body -sS -X POST "$AUTH_URL"             -H "apikey: $SUPABASE_KEY" -H "Content-Type: application/json"             --data "$(jq -nc --arg u "$USERNAME" --arg p "$PASSWORD" '{mode:"login",username:$u,password:$p}')")"
+          LOGIN_USER_ID="$(echo "$login_json" | jq -r '.user_id')"
+          REGISTER_USER_ID="$(echo "$register_json" | jq -r '.user_id')"
+          test -n "$LOGIN_USER_ID"
+          test "$LOGIN_USER_ID" = "$REGISTER_USER_ID"
+          ACCESS_TOKEN="$(echo "$login_json" | jq -r '.access_token')"
+
+          profile_json="$(curl --fail-with-body -sS "$SUPABASE_URL/rest/v1/profiles?select=id,username,display_name&id=eq.$LOGIN_USER_ID"             -H "apikey: $SUPABASE_KEY" -H "Authorization: Bearer $ACCESS_TOKEN")"
+          echo "$profile_json" | jq -e --arg id "$LOGIN_USER_ID" --arg u "$USERNAME" '. | length == 1 and .[0].id == $id and .[0].username == $u' >/dev/null
+
+          QUICK_DEVICE="ci-device-$GITHUB_RUN_ID-pharaoh-party"
+          quick1="$(curl --fail-with-body -sS -X POST "$AUTH_URL"             -H "apikey: $SUPABASE_KEY" -H "Content-Type: application/json"             --data "$(jq -nc --arg d "$QUICK_DEVICE" '{mode:"quick",device_key:$d}')")"
+          quick2="$(curl --fail-with-body -sS -X POST "$AUTH_URL"             -H "apikey: $SUPABASE_KEY" -H "Content-Type: application/json"             --data "$(jq -nc --arg d "$QUICK_DEVICE" '{mode:"quick",device_key:$d}')")"
+          Q1="$(echo "$quick1" | jq -r '.user_id')"
+          Q2="$(echo "$quick2" | jq -r '.user_id')"
+          test -n "$Q1"
+          test "$Q1" = "$Q2"
+          echo "AUTH TEST PASSED: normal register/login and repeated quick login returned stable Supabase identities."
+
       - name: Build debug APK
         run: gradle --no-daemon clean :app:assembleDebug
 

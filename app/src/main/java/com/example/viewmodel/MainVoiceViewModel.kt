@@ -291,9 +291,8 @@ class MainVoiceViewModel : ViewModel() {
     }
 
     /**
-     * Persistent Login or Account Creation:
-     * - If the email already exists and password matches -> opens that exact account with its existing ID.
-     * - If the email does not exist -> creates a new account with a brand-new unique ID (`معرف جديد`).
+     * Production authentication: username/password are the only normal login fields.
+     * Supabase owns the account identity and profile; quick login reuses one device-bound account.
      */
     fun loginOrRegister(
         email: String,
@@ -304,123 +303,54 @@ class MainVoiceViewModel : ViewModel() {
     ) {
         viewModelScope.launch {
             try {
-                if (email == "__QUICK_LOGIN__") {
-                    val remoteUserId = PharaohSupabaseAuth.quickLogin()
-                    val remoteProfile = PharaohSupabaseAuth.loadProfile(remoteUserId)
-                    refreshRemoteAccessContext()
-                    refreshStoreCatalogFromSupabase()
-                    _authErrorMessage.value = null
-                    _userProfile.value = _userProfile.value.copy(
-                        uuid = remoteProfile.id,
-                        displayId = remoteProfile.displayId ?: _userProfile.value.displayId,
-                        email = "quick@device.pharaohparty.local",
-                        nickname = remoteProfile.displayName,
-                        customAvatarUri = remoteProfile.avatarUrl,
-                        goldCoins = remoteProfile.coins,
-                        crystalDiamonds = remoteProfile.diamonds,
-                        vipTier = remoteProfile.vipLevel,
-                        isHostAgent = remoteProfile.isHostAgent,
-                        isHostMember = remoteProfile.isHostMember,
-                        isChargeAgent = remoteProfile.isChargeAgent,
-                        isBanned = remoteProfile.isBanned
+                val remoteUserId = if (email == "__QUICK_LOGIN__") {
+                    PharaohSupabaseAuth.quickLogin()
+                } else {
+                    PharaohSupabaseAuth.loginOrCreate(
+                        username = email.trim(),
+                        credential = password,
+                        nickname = nickname,
+                        allowCreate = createAccount
                     )
-                    _isLoggedIn.value = !remoteProfile.isBanned
-                    if (remoteProfile.isBanned) _authErrorMessage.value = "هذا الحساب محظور: لا يمكن الدخول إلى التطبيق."
-                    return@launch
                 }
-                val username = email.trim()
-                val remoteUserId = PharaohSupabaseAuth.loginOrCreate(username, password, nickname, allowCreate = createAccount)
+
                 val remoteProfile = PharaohSupabaseAuth.loadProfile(remoteUserId)
                 refreshRemoteAccessContext()
                 refreshStoreCatalogFromSupabase()
-                val syntheticEmail = if (username.contains("@")) username.trim().lowercase() else username.lowercase().replace(" ", "_") + "@accounts.pharaohparty.local"
 
-                val (record, localError) = MasterAppDatabaseTable.authenticateOrCreateAccount(
-                    emailInput = syntheticEmail,
-                    passwordInput = password,
-                    nicknameInput = remoteProfile.displayName,
-                    avatarTypeInput = avatarType
-                )
-                if (localError != null || record == null) {
-                    _authErrorMessage.value = localError ?: "تعذر تحميل الحساب المحلي"
+                if (remoteProfile.isBanned) {
+                    _isLoggedIn.value = false
+                    _authErrorMessage.value = "هذا الحساب محظور: لا يمكن الدخول إلى التطبيق."
                     return@launch
                 }
 
-                record.profile = record.profile.copy(
+                val displayName = remoteProfile.displayName.ifBlank {
+                    nickname?.ifBlank { "مستخدم فرعون بارتي" } ?: "مستخدم فرعون بارتي"
+                }
+
+                _userProfile.value = _userProfile.value.copy(
                     uuid = remoteProfile.id,
-                    displayId = remoteProfile.displayId ?: record.profile.displayId,
-                    email = syntheticEmail,
-                    nickname = remoteProfile.displayName,
+                    displayId = remoteProfile.displayId ?: remoteUserId.takeLast(7),
+                    email = "",
+                    nickname = displayName,
                     customAvatarUri = remoteProfile.avatarUrl,
-                    countryFlag = if (remoteProfile.country == "EG") "🇪🇬" else record.profile.countryFlag,
+                    countryFlag = if (remoteProfile.country == "EG") "🇪🇬" else _userProfile.value.countryFlag,
                     goldCoins = remoteProfile.coins,
                     crystalDiamonds = remoteProfile.diamonds,
                     vipTier = remoteProfile.vipLevel,
                     isHostAgent = remoteProfile.isHostAgent,
                     isHostMember = remoteProfile.isHostMember,
                     isChargeAgent = remoteProfile.isChargeAgent,
-                    isBanned = remoteProfile.isBanned
+                    isBanned = false
                 )
 
-                if (remoteProfile.isBanned) {
-                    _authErrorMessage.value = "هذا الحساب محظور: لا يمكن الدخول إلى التطبيق."
-                    return@launch
-                }
                 _authErrorMessage.value = null
-                _userProfile.value = record.profile
-                MasterAppDatabaseTable.bindDefaultRoomPermissionsForUser(record.profile.displayId, record.profile.uuid)
-
-                _rooms.update { list ->
-                    list.map { room ->
-                        val adjustedRoom = when (room.id) {
-                            "room_1" -> room.copy(
-                                roomDisplayId = record.profile.displayId,
-                                hostUserId = record.profile.uuid,
-                                hostName = record.profile.nickname,
-                                seats = room.seats.map { seat ->
-                                    if (seat.seatIndex == 0) seat.copy(
-                                        occupantUserId = record.profile.uuid,
-                                        occupantName = record.profile.nickname,
-                                        occupantDisplayId = record.profile.displayId,
-                                        occupantFrame = record.profile.frameStyle
-                                    ) else seat
-                                }
-                            )
-                            "room_2" -> room.copy(adminUserIds = (room.adminUserIds + record.profile.uuid + record.profile.displayId).distinct())
-                            else -> room
-                        }
-                        adjustedRoom.copy(
-                            myRoleInRoom = MasterAppDatabaseTable.resolveRoomRoleAutomaticallyById(
-                                room = adjustedRoom,
-                                userDisplayId = record.profile.displayId,
-                                userUuid = record.profile.uuid
-                            )
-                        )
-                    }
-                }
-
-                _storeItems.update { list ->
-                    list.map { item ->
-                        val owned = record.ownedItemIds.contains(item.id)
-                        item.copy(
-                            isOwned = owned,
-                            isEquipped = when (item.category) {
-                                StoreItemCategory.FRAMES -> item.frameStyle == record.profile.frameStyle
-                                StoreItemCategory.ENTRY_MOUNTS -> item.nameAr == record.profile.entryWelcomeName
-                                StoreItemCategory.SPECIAL_IDS -> item.specialIdValue == record.profile.displayId
-                                StoreItemCategory.CHAT_BUBBLES -> item.nameAr == record.profile.equippedChatBubbleName
-                                StoreItemCategory.ROOM_THEMES -> item.roomThemeId == "PALACE_NIGHT"
-                            }
-                        )
-                    }
-                }
-
                 _isLoggedIn.value = true
-                syncCurrentProfileToMasterTable()
-                persistRoomsToDatabase()
-                showToast("👑 مرحباً " + record.profile.nickname + " • الحساب متصل بقاعدة البيانات • ID: " + record.profile.displayId)
+                showToast("👑 مرحباً $displayName • الحساب متصل بـ Supabase • ID: ${_userProfile.value.displayId}")
             } catch (e: Exception) {
-                _authErrorMessage.value = e.message ?: "تعذر تسجيل الدخول إلى قاعدة البيانات"
+                _isLoggedIn.value = false
+                _authErrorMessage.value = e.message?.ifBlank { "تعذر تسجيل الدخول إلى قاعدة البيانات" }
+                    ?: "تعذر تسجيل الدخول إلى قاعدة البيانات"
             }
         }
     }

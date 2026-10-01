@@ -149,7 +149,7 @@ object PharaohSupabaseAuth {
             val code = connection.responseCode
             val stream = if (code in 200..299) connection.inputStream else connection.errorStream
             val result = stream?.bufferedReader()?.use { it.readText() }.orEmpty()
-            if (code !in 200..299) error("Supabase request failed: $code $result")
+            if (code !in 200..299) {\n                val message = runCatching { JSONObject(result).optString("error") }.getOrNull().orEmpty()\n                error(message.ifBlank { "تعذر الاتصال بخدمة تسجيل الدخول" })\n            }
             return JSONObject(result)
         } finally {
             connection.disconnect()

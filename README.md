@@ -23,3 +23,6 @@ View your app in AI Studio: https://ai.studio/apps/2022594a-2e22-414f-aff5-71628
 
 
 <!-- Pharaoh Party Supabase username/password authentication build verification trigger: 2026-10-01 -->
+
+
+Final username/password Supabase authentication verification: v3 deployed and Android auth client error handling hardened.

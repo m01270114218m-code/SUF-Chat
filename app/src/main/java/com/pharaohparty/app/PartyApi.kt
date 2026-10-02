@@ -88,6 +88,12 @@ data class RoomSeat(
 )
 
 @Serializable
+data class RoomMessage(val id: String, val room_id: String, val user_id: String, val message: String, val created_at: String)
+
+@Serializable
+data class Gift(val id: String, val name: String, val icon: String = "🎁", val price_coins: Long = 0, val enabled: Boolean = true)
+
+@Serializable
 data class StoreItem(
     val id: String,
     val name: String,
@@ -166,7 +172,24 @@ class PartyApi(private val context: Context) {
         return get("/rest/v1/store_items?select=*&enabled=eq.true&order=sort_order.asc").body()
     }
 
-    suspend fun seats(roomId: String): List<RoomSeat> = get("/rest/v1/room_seats?room_id=eq.$roomId&order=seat_no.asc").body()\n\n    suspend fun messages(roomId: String): List<RoomMessage> = get("/rest/v1/room_messages?room_id=eq.$roomId&order=created_at.asc&limit=100").body()\n\n    suspend fun gifts(): List<Gift> = get("/rest/v1/gifts?enabled=eq.true&order=sort_order.asc").body()\n\n    suspend fun claimSeat(roomId: String, seatNo: Int): RoomSeat {\n        val response = rpc("claim_room_seat", buildJsonObject { put("p_room_id", roomId); put("p_seat_no", seatNo) })\n        if (!response.status.isSuccess()) error(response.bodyAsText())\n        return response.body()\n    }\n\n    suspend fun setSeatState(roomId: String, seatNo: Int, locked: Boolean, muted: Boolean) {\n        val response = rpc("set_seat_state", buildJsonObject { put("p_room", roomId); put("p_seat", seatNo); put("p_locked", locked); put("p_muted", muted) })\n        if (!response.status.isSuccess()) error(response.bodyAsText())\n    }\n\n    suspend fun joinRoom(roomId: String, seatNo: Int): RoomSeat {
+    suspend fun seats(roomId: String): List<RoomSeat> = get("/rest/v1/room_seats?room_id=eq.$roomId&order=seat_no.asc").body()
+
+    suspend fun messages(roomId: String): List<RoomMessage> = get("/rest/v1/room_messages?room_id=eq.$roomId&order=created_at.asc&limit=100").body()
+
+    suspend fun gifts(): List<Gift> = get("/rest/v1/gifts?enabled=eq.true&order=sort_order.asc").body()
+
+    suspend fun claimSeat(roomId: String, seatNo: Int): RoomSeat {
+        val response = rpc("claim_room_seat", buildJsonObject { put("p_room_id", roomId); put("p_seat_no", seatNo) })
+        if (!response.status.isSuccess()) error(response.bodyAsText())
+        return response.body()
+    }
+
+    suspend fun setSeatState(roomId: String, seatNo: Int, locked: Boolean, muted: Boolean) {
+        val response = rpc("set_seat_state", buildJsonObject { put("p_room", roomId); put("p_seat", seatNo); put("p_locked", locked); put("p_muted", muted) })
+        if (!response.status.isSuccess()) error(response.bodyAsText())
+    }
+
+    suspend fun joinRoom(roomId: String, seatNo: Int): RoomSeat {
         val response = rpc("join_room", buildJsonObject { put("p_room_id", roomId); seatNo?.let { put("p_seat_no", it) } })
         if (!response.status.isSuccess()) error(response.bodyAsText())
         return response.body()
@@ -210,7 +233,9 @@ class PartyApi(private val context: Context) {
         }
     }
 
-    suspend fun logout() { SessionStore(context).clear(); accessToken = null; userId = null }\n\n    fun deviceKey(): String {
+    suspend fun logout() { SessionStore(context).clear(); accessToken = null; userId = null }
+
+    fun deviceKey(): String {
         return Settings.Secure.getString(
             context.contentResolver,
             Settings.Secure.ANDROID_ID

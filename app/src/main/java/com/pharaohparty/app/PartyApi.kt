@@ -31,4 +31,4 @@ class PartyApi(private val context:Context){
  fun deviceKey():String=Settings.Secure.getString(context.contentResolver,Settings.Secure.ANDROID_ID)?:"unknown-device"
 }
 data class StoredSession(val access:String,val refresh:String,val user:String)
-class SessionStore(private val context:Context){private val prefs get()=context.getSharedPreferences("pharaoh_session",Context.MODE_PRIVATE);fun save(access:String,refresh:String,user:String){prefs.edit().putString("access",access).putString("refresh",refresh).putString("user",user).apply()};fun read()=StoredSession(prefs.getString("access","")?:"",prefs.getString("refresh","")?:"");fun clear(){prefs.edit().clear().apply()}}
+class SessionStore(private val context:Context){private val prefs get()=context.getSharedPreferences("pharaoh_session",Context.MODE_PRIVATE);fun save(access:String,refresh:String,user:String){prefs.edit().putString("access",access).putString("refresh",refresh).putString("user",user).apply()};fun read()=StoredSession(prefs.getString("access","")?:"",prefs.getString("refresh","")?:"",prefs.getString("user","")?:"");fun clear(){prefs.edit().clear().apply()}}

@@ -127,11 +127,14 @@ class PartyApi(private val context: Context) {
             setBody(request)
         }
 
-        val body = response.body<AuthResponse>()
-        if (!response.status.isSuccess()) {
-            error(body.error ?: "تعذر تسجيل الدخول")
+        val raw = response.bodyAsText()
+        val body = runCatching { json.decodeFromString<AuthResponse>(raw) }.getOrElse {
+            AuthResponse(error = raw.ifBlank { null })
         }
-        val token = body.access_token ?: error("لم يتم إنشاء جلسة صالحة")
+        if (!response.status.isSuccess()) {
+            error(body.error ?: "تعذر تسجيل الدخول (${response.status.value})")
+        }
+        val token = body.access_token ?: error(body.error ?: "لم يتم إنشاء جلسة صالحة")
         val uid = body.user_id ?: error("لم يتم إنشاء معرف مستخدم")
         accessToken = token
         userId = uid

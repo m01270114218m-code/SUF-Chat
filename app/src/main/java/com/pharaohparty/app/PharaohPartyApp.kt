@@ -153,62 +153,106 @@ private fun RoomCard(room: Room, onClick: () -> Unit) {
 
 @Composable
 private fun RoomScreen(vm: PartyViewModel, room: Room) {
+    val profile by vm.profile.collectAsState()
+    val seats by vm.seats.collectAsState()
+    val messages by vm.messages.collectAsState()
+    val gifts by vm.gifts.collectAsState()
     val mic by vm.micEnabled.collectAsState()
+    var chat by remember { mutableStateOf(false) }
+    var giftsOpen by remember { mutableStateOf(false) }
+    var message by remember { mutableStateOf("") }
 
     Column(Modifier.fillMaxSize()) {
-        Row(Modifier.fillMaxWidth().padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+        Row(Modifier.fillMaxWidth().padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
             IconButton(onClick = vm::home) { Icon(Icons.Default.ArrowBack, null) }
             Column(Modifier.weight(1f)) {
-                Text(room.title ?: room.name, fontSize = 20.sp, fontWeight = FontWeight.Bold)
-                Text("غرفة صوتية مباشرة", color = Gold)
+                Text(room.name, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                Text("مباشر • §{seats.count { it.user_id != null }} متصل", color = Gold, fontSize = 12.sp)
             }
-            Icon(Icons.Default.MoreVert, null)
+            Text("🪙 §{profile?.coins ?: 0}", color = Gold)
         }
-
-        Column(
-            Modifier.weight(1f).fillMaxWidth().padding(20.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+        Card(Modifier.fillMaxWidth().padding(horizontal = 12.dp), shape = RoundedCornerShape(22.dp), colors = CardDefaults.cardColors(containerColor = Surface2)) {
+            Column(Modifier.padding(14.dp)) {
+                Text(room.title ?: "مجلس فرعون بارتي", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                Text("الصوت مباشر عبر LiveKit • بيانات الغرفة عبر Supabase", color = TextSoft, fontSize = 12.sp)
+            }
+        }
+        LazyVerticalGrid(
+            GridCells.Fixed(4),
+            Modifier.weight(1f).padding(14.dp),
+            contentPadding = PaddingValues(4.dp),
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+            verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
-            Text("غرفة صوتية مباشرة", fontSize = 24.sp, fontWeight = FontWeight.Bold)
-            Text("LiveKit للصوت • Supabase للغرفة والبيانات", color = Color.LightGray)
-            Spacer(Modifier.height(28.dp))
-
-            LazyVerticalGrid(
-                columns = GridCells.Fixed(3),
-                verticalArrangement = Arrangement.spacedBy(18.dp),
-                horizontalArrangement = Arrangement.spacedBy(18.dp)
-            ) {
-                items((0 until room.max_seats).toList()) { index ->
-                    Box(
-                        Modifier.aspectRatio(1f).background(
-                            Color(0x552A1457),
-                            RoundedCornerShape(50.dp)
-                        ),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text("🎙️", fontSize = 38.sp)
-                            Text("${index + 1}", color = Color.LightGray)
-                        }
+            items((1..room.max_seats).toList()) { number ->
+                val seat = seats.firstOrNull { it.seat_no == number }
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier.clickable(enabled = seat?.user_id == null && seat?.locked != true) {
+                        vm.claimSeat(room.id, number)
                     }
+                ) {
+                    Box(Modifier.size(68.dp).background(if (seat?.user_id != null) Primary else Color(0x552D1849), CircleShape), contentAlignment = Alignment.Center) {
+                        Text(if (seat?.user_id != null) "🎙️" else if (seat?.locked == true) "🔒" else "+", fontSize = 28.sp)
+                    }
+                    Text(if (seat?.user_id != null) "متحدث" else "مقعد $number", fontSize = 11.sp, color = TextSoft)
+                    if (seat?.is_muted == true) Text("🔇", fontSize = 10.sp)
                 }
             }
         }
+        Row(Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 6.dp), horizontalArrangement = Arrangement.SpaceEvenly) {
+            FilledTonalIconButton(onClick = { chat = true }) { Icon(Icons.Default.Chat, null) }
+            FilledTonalIconButton(onClick = { giftsOpen = true }) { Icon(Icons.Default.CardGiftcard, null) }
+            FilledIconButton(onClick = vm::toggleMic) { Icon(if (mic) Icons.Default.Mic else Icons.Default.MicOff, null) }
+            FilledTonalIconButton(onClick = vm::home) { Icon(Icons.Default.ExitToApp, null) }
+        }
+        Text("اضغط مقعداً فارغاً للصعود إلى المايك", color = TextSoft, fontSize = 11.sp, modifier = Modifier.align(Alignment.CenterHorizontally).padding(bottom = 8.dp))
+    }
 
-        Row(
-            Modifier.fillMaxWidth().padding(18.dp),
-            horizontalArrangement = Arrangement.SpaceEvenly
-        ) {
-            FilledTonalIconButton(onClick = { vm.refresh() }) { Icon(Icons.Default.Chat, null) }
-            FilledTonalIconButton(onClick = { vm.refresh() }) { Icon(Icons.Default.CardGiftcard, null) }
-            FilledIconButton(onClick = vm::toggleMic) {
-                Icon(if (mic) Icons.Default.Mic else Icons.Default.MicOff, null)
+    if (chat) {
+        ModalBottomSheet(onDismissRequest = { chat = false }) {
+            Column(Modifier.fillMaxWidth().padding(16.dp)) {
+                Text("دردشة الغرفة", fontSize = 22.sp, fontWeight = FontWeight.Bold)
+                LazyColumn(Modifier.heightIn(max = 340.dp), verticalArrangement = Arrangement.spacedBy(7.dp)) {
+                    items(messages) { m -> Text("§{m.user_id.take(8)}: §{m.message}", Modifier.background(Surface2, RoundedCornerShape(12.dp)).padding(10.dp)) }
+                }
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    OutlinedTextField(message, { message = it }, Modifier.weight(1f), placeholder = { Text("اكتب رسالتك") })
+                    IconButton(onClick = { vm.sendMessage(room.id, message); message = "" }) { Icon(Icons.Default.Send, null) }
+                }
+                Spacer(Modifier.height(18.dp))
             }
-            FilledTonalIconButton(onClick = {}) { Icon(Icons.Default.VolumeUp, null) }
+        }
+    }
+
+    if (giftsOpen) {
+        ModalBottomSheet(onDismissRequest = { giftsOpen = false }) {
+            Column(Modifier.fillMaxWidth().padding(16.dp)) {
+                Text("إرسال هدية", fontSize = 22.sp, fontWeight = FontWeight.Bold)
+                Text("اختر هدية لإرسالها إلى أحد الموجودين", color = TextSoft)
+                val receiver = seats.firstOrNull { it.user_id != null }?.user_id
+                LazyColumn(Modifier.heightIn(max = 420.dp)) {
+                    items(gifts) { gift ->
+                        Card(Modifier.fillMaxWidth().padding(vertical = 5.dp), colors = CardDefaults.cardColors(containerColor = Surface2)) {
+                            Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
+                                Text(gift.icon, fontSize = 38.sp)
+                                Column(Modifier.weight(1f)) {
+                                    Text(gift.name, fontWeight = FontWeight.Bold)
+                                    Text("§{gift.price_coins} 🪙", color = Gold)
+                                }
+                                Button(enabled = receiver != null, onClick = {
+                                    receiver?.let { vm.sendGift(room.id, it, gift.id) }
+                                    giftsOpen = false
+                                }) { Text("إرسال") }
+                            }
+                        }
+                    }
+                }
+                Spacer(Modifier.height(18.dp))
+            }
         }
     }
 }
-
 @Composable
 private fun StoreScreen(vm: PartyViewModel) {
     val storeItems by vm.store.collectAsState()

@@ -8,6 +8,8 @@ import kotlinx.coroutines.launch
 sealed interface Screen { data object Login:Screen; data object Home:Screen; data class Room(val room:com.pharaohparty.app.Room):Screen; data object Store:Screen; data object Profile:Screen }
 class PartyViewModel(app:Application):AndroidViewModel(app){
  private val api=PartyApi(app)
+ private val liveKit=LiveKitManager(app)
+ private val _micEnabled=MutableStateFlow(false); val micEnabled:StateFlow<Boolean> = _micEnabled
  private val _screen=MutableStateFlow<Screen>(Screen.Login); val screen:StateFlow<Screen> = _screen
  private val _profile=MutableStateFlow<Profile?>(null); val profile:StateFlow<Profile?>=_profile
  private val _rooms=MutableStateFlow<List<Room>>(emptyList()); val rooms:StateFlow<List<Room>>=_rooms
@@ -18,9 +20,11 @@ class PartyViewModel(app:Application):AndroidViewModel(app){
  fun login(username:String,password:String,create:Boolean)=viewModelScope.launch{_error.value=null;try{api.auth(AuthRequest(if(create)"register" else "login",username.trim(),password));_profile.value=api.profile();if(_profile.value?.is_banned==true)error("هذا الحساب محظور");refresh();_screen.value=Screen.Home}catch(e:Exception){_error.value=e.message?:"حدث خطأ"}}
  fun quickLogin()=viewModelScope.launch{_error.value=null;try{api.auth(AuthRequest(action="quick_login",device_key=api.deviceKey()));_profile.value=api.profile();refresh();_screen.value=Screen.Home}catch(e:Exception){_error.value=e.message?:"تعذر الدخول السريع"}}
  fun refresh()=viewModelScope.launch{runCatching{_rooms.value=api.rooms();_store.value=api.store()}.onFailure{_error.value=it.message}}
- fun open(room:Room){_screen.value=Screen.Room(room)}
+ fun open(room:Room){_screen.value=Screen.Room(room);joinVoice(room)}
+ fun joinVoice(room:Room)=viewModelScope.launch{runCatching{liveKit.connect(api,room.id);_micEnabled.value=liveKit.room?.localParticipant?.setMicrophoneEnabled(true)==true}.onFailure{_error.value=it.message}}
+ fun toggleMic()=viewModelScope.launch{runCatching{val r=liveKit.room?:return@runCatching;_micEnabled.value=r.localParticipant.setMicrophoneEnabled(!_micEnabled.value)}.onFailure{_error.value=it.message}}
  fun store(){_screen.value=Screen.Store}
  fun profile(){_screen.value=Screen.Profile}
- fun home(){_screen.value=Screen.Home}
+ fun home(){liveKit.disconnect();_micEnabled.value=false;_screen.value=Screen.Home}
  fun clearError(){_error.value=null}
 }

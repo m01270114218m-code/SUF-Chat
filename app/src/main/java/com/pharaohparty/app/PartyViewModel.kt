@@ -31,6 +31,18 @@ class PartyViewModel(app: Application) : AndroidViewModel(app) {
     private val _store = MutableStateFlow<List<StoreItem>>(emptyList())
     val store: StateFlow<List<StoreItem>> = _store
 
+    private val _seats = MutableStateFlow<List<RoomSeat>>(emptyList())
+    val seats: StateFlow<List<RoomSeat>> = _seats
+
+    private val _messages = MutableStateFlow<List<RoomMessage>>(emptyList())
+    val messages: StateFlow<List<RoomMessage>> = _messages
+
+    private val _gifts = MutableStateFlow<List<Gift>>(emptyList())
+    val gifts: StateFlow<List<Gift>> = _gifts
+
+    private val _busy = MutableStateFlow(false)
+    val busy: StateFlow<Boolean> = _busy
+
     private val _micEnabled = MutableStateFlow(false)
     val micEnabled: StateFlow<Boolean> = _micEnabled
 
@@ -116,6 +128,46 @@ class PartyViewModel(app: Application) : AndroidViewModel(app) {
                 _error.value = it.message
                 _screen.value = Screen.Home
             }
+        }
+    }
+
+    fun sendMessage(roomId: String, message: String) {
+        if (message.isBlank()) return
+        viewModelScope.launch {
+            runCatching {
+                api.sendMessage(roomId, message.trim())
+                _messages.value = api.messages(roomId)
+            }.onFailure { _error.value = it.message }
+        }
+    }
+
+    fun sendGift(roomId: String, receiverId: String, giftId: String) {
+        viewModelScope.launch {
+            runCatching {
+                api.sendGift(roomId, receiverId, giftId)
+                _profile.value = api.profile()
+            }.onFailure { _error.value = it.message }
+        }
+    }
+
+    fun buy(itemId: String) {
+        viewModelScope.launch {
+            runCatching {
+                api.purchase(itemId)
+                _profile.value = api.profile()
+            }.onFailure { _error.value = it.message }
+        }
+    }
+
+    fun createRoom(name: String, title: String) {
+        viewModelScope.launch {
+            _busy.value = true
+            runCatching {
+                val room = api.createRoom(name, title)
+                _rooms.value = api.rooms()
+                open(room)
+            }.onFailure { _error.value = it.message }
+            _busy.value = false
         }
     }
 

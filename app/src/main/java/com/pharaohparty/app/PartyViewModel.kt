@@ -21,10 +21,10 @@ class PartyViewModel(app:Application):AndroidViewModel(app){
  fun quickLogin()=viewModelScope.launch{_error.value=null;try{api.auth(AuthRequest(action="quick_login",device_key=api.deviceKey()));_profile.value=api.profile();refresh();_screen.value=Screen.Home}catch(e:Exception){_error.value=e.message?:"تعذر الدخول السريع"}}
  fun refresh()=viewModelScope.launch{runCatching{_rooms.value=api.rooms();_store.value=api.store()}.onFailure{_error.value=it.message}}
  fun open(room:Room){_screen.value=Screen.Room(room);joinVoice(room)}
- fun joinVoice(room:Room)=viewModelScope.launch{runCatching{liveKit.connect(api,room.id);_micEnabled.value=liveKit.room?.localParticipant?.setMicrophoneEnabled(true)==true}.onFailure{_error.value=it.message}}
+ fun joinVoice(room:Room)=viewModelScope.launch{runCatching{api.joinRoom(room.id,null);liveKit.connect(api,room.id);_micEnabled.value=liveKit.room?.localParticipant?.setMicrophoneEnabled(true)==true}.onFailure{_error.value=it.message;_screen.value=Screen.Home}}
  fun toggleMic()=viewModelScope.launch{runCatching{val r=liveKit.room?:return@runCatching;_micEnabled.value=r.localParticipant.setMicrophoneEnabled(!_micEnabled.value)}.onFailure{_error.value=it.message}}
  fun store(){_screen.value=Screen.Store}
  fun profile(){_screen.value=Screen.Profile}
- fun home(){liveKit.disconnect();_micEnabled.value=false;_screen.value=Screen.Home}
+ fun home(){viewModelScope.launch{val current=_screen.value;if(current is Screen.Room){runCatching{api.leaveRoom(current.room.id)}};liveKit.disconnect();_micEnabled.value=false;_screen.value=Screen.Home}}
  fun clearError(){_error.value=null}
 }

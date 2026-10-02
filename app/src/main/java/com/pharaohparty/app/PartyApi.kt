@@ -18,6 +18,8 @@ import io.ktor.serialization.kotlinx.json.json
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.put
 
 @Serializable
 data class AuthRequest(
@@ -165,13 +167,13 @@ class PartyApi(private val context: Context) {
     }
 
     suspend fun joinRoom(roomId: String, seatNo: Int? = null): RoomSeat {
-        val response = rpc("join_room", mapOf("p_room_id" to roomId, "p_seat_no" to seatNo))
+        val response = rpc("join_room", buildJsonObject { put("p_room_id", roomId); seatNo?.let { put("p_seat_no", it) } })
         if (!response.status.isSuccess()) error(response.bodyAsText())
         return response.body()
     }
 
     suspend fun leaveRoom(roomId: String) {
-        val response = rpc("leave_room", mapOf("p_room_id" to roomId))
+        val response = rpc("leave_room", buildJsonObject { put("p_room_id", roomId) })
         if (!response.status.isSuccess()) error(response.bodyAsText())
     }
 
@@ -191,7 +193,7 @@ class PartyApi(private val context: Context) {
         return body
     }
 
-    private suspend fun rpc(name: String, payload: Any): HttpResponse {
+    private suspend fun rpc(name: String, payload: kotlinx.serialization.json.JsonObject): HttpResponse {
         return client.post(BuildConfig.SUPABASE_URL + "/rest/v1/rpc/" + name) {
             contentType(ContentType.Application.Json)
             header("apikey", BuildConfig.SUPABASE_KEY)

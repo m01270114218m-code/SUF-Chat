@@ -13,13 +13,13 @@ android {
         targetSdk = 37
         versionCode = 1
         versionName = "1.0.0"
-    }
-    buildFeatures { compose = true; buildConfig = true }
-    buildTypes { release { isMinifyEnabled = false; proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro") } }
     buildConfigField("String", "SUPABASE_URL", "\"https://fdvgpdfesvigtvmzjhnt.supabase.co\"")
     buildConfigField("String", "SUPABASE_KEY", "\"sb_publishable_gW5LE2T9Y6rfv63DMHnYew_64sa1cOL\"")
     buildConfigField("String", "AUTH_FUNCTION", "\"pharaoh-auth\"")
     buildConfigField("String", "LIVEKIT_TOKEN_FUNCTION", "\"livekit-token\"")
+    }
+    buildFeatures { compose = true; buildConfig = true }
+    buildTypes { release { isMinifyEnabled = false; proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro") } }
 }
 
 dependencies {

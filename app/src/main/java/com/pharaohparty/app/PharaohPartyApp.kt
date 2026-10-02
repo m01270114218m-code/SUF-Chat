@@ -105,7 +105,7 @@ private fun HomeScreen(vm: PartyViewModel) {
         Row(Modifier.fillMaxWidth().padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f)) {
                 Text(profile?.display_name ?: "مستخدم", fontSize = 20.sp, fontWeight = FontWeight.Bold)
-                Text("ID @@{profile?.display_id ?: "—"} • 🪙 @@{profile?.coins ?: 0}", color = Gold)
+                Text("ID ${profile?.display_id ?: "—"} • 🪙 ${profile?.coins ?: 0}", color = Gold)
             }
             IconButton(onClick = vm::profile) { Icon(Icons.Default.Person, null) }
         }
@@ -144,7 +144,7 @@ private fun RoomCard(room: Room, onClick: () -> Unit) {
 
             Column(Modifier.weight(1f)) {
                 Text(room.title ?: room.name, fontWeight = FontWeight.Bold, fontSize = 18.sp)
-                Text("غرفة صوتية • @@{room.max_seats} مقاعد", color = Color.LightGray)
+                Text("غرفة صوتية • ${room.max_seats} مقاعد", color = Color.LightGray)
             }
             Text("دخول", color = Gold, fontWeight = FontWeight.Bold)
         }
@@ -188,7 +188,7 @@ private fun RoomScreen(vm: PartyViewModel, room: Room) {
                     ) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             Text("🎙️", fontSize = 38.sp)
-                            Text("@@{index + 1}", color = Color.LightGray)
+                            Text("${index + 1}", color = Color.LightGray)
                         }
                     }
                 }
@@ -233,7 +233,7 @@ private fun StoreScreen(vm: PartyViewModel) {
                     ) {
                         Text(item.icon ?: "✨", fontSize = 50.sp)
                         Text(item.name, fontWeight = FontWeight.Bold)
-                        Text("@@{item.price_coins} 🪙", color = Gold)
+                        Text("${item.price_coins} 🪙", color = Gold)
                         Spacer(Modifier.height(8.dp))
                         Button(onClick = {}) { Text("شراء") }
                     }
@@ -256,11 +256,11 @@ private fun ProfileScreen(vm: PartyViewModel) {
         Card(shape = RoundedCornerShape(26.dp), modifier = Modifier.fillMaxWidth()) {
             Column(Modifier.padding(22.dp)) {
                 Text(profile?.display_name ?: "مستخدم", fontSize = 24.sp, fontWeight = FontWeight.Bold)
-                Text("ID @@{profile?.display_id ?: "—"}")
+                Text("ID ${profile?.display_id ?: "—"}")
                 Spacer(Modifier.height(12.dp))
-                Text("🪙 @@{profile?.coins ?: 0}   💎 @@{profile?.diamonds ?: 0}")
-                Text("VIP @@{profile?.vip_level ?: 0}")
-                Text("الدور: @@{profile?.role_code ?: "USER"}")
+                Text("🪙 ${profile?.coins ?: 0}   💎 ${profile?.diamonds ?: 0}")
+                Text("VIP ${profile?.vip_level ?: 0}")
+                Text("الدور: ${profile?.role_code ?: "USER"}")
             }
         }
     }

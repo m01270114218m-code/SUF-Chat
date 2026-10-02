@@ -1,10 +1,11 @@
 package com.pharaohparty.app
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.grid.*
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -17,11 +18,250 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-private val Purple=Color(0xFF6E2BD9); private val Deep=Color(0xFF0A0317); private val Card=Color(0xFF24104A); private val Gold=Color(0xFFFFD66B)
-@Composable fun PharaohPartyApp(vm:PartyViewModel){val screen by vm.screen.collectAsState();val error by vm.error.collectAsState();MaterialTheme(colorScheme=darkColorScheme(primary=Purple,background=Deep,surface=Card)){Box(Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(Color(0xFF30105C),Deep)))){when(val s=screen){Screen.Login->LoginScreen(vm);Screen.Home->HomeScreen(vm);is Screen.Room->RoomScreen(vm,s.room);Screen.Store->StoreScreen(vm);Screen.Profile->ProfileScreen(vm)};if(error!=null)AlertDialog(onDismissRequest=vm::clearError,confirmButton={TextButton(onClick=vm::clearError){Text("حسناً")}},title={Text("تنبيه")},text={Text(error!!)})}}}}
-@Composable private fun LoginScreen(vm:PartyViewModel){var user by remember{mutableStateOf("")};var pass by remember{mutableStateOf("")};var create by remember{mutableStateOf(false)};Column(Modifier.fillMaxSize().padding(24.dp),horizontalAlignment=Alignment.CenterHorizontally,verticalArrangement=Arrangement.Center){Text("♛",fontSize=72.sp,color=Gold);Text("فرعون بارتي",fontSize=34.sp,fontWeight=FontWeight.Bold);Text("غرف صوتية • هدايا • VIP • وكالات",color=Color.LightGray);Spacer(Modifier.height(30.dp));OutlinedTextField(user,{user=it},label={Text("اسم المستخدم")},singleLine=true,modifier=Modifier.fillMaxWidth());Spacer(Modifier.height(10.dp));OutlinedTextField(pass,{pass=it},label={Text("كلمة المرور")},singleLine=true,modifier=Modifier.fillMaxWidth());Spacer(Modifier.height(16.dp));Button(onClick={vm.login(user,pass,create)},enabled=user.length>=3&&pass.length>=6,modifier=Modifier.fillMaxWidth()){Text(if(create)"إنشاء الحساب" else "دخول")};TextButton(onClick={create=!create}){Text(if(create)"لدي حساب بالفعل" else "إنشاء حساب جديد")};OutlinedButton(onClick={vm::quickLogin},modifier=Modifier.fillMaxWidth()){Text("دخول سريع — حساب واحد لهذا الجهاز")}}}
-@Composable private fun HomeScreen(vm:PartyViewModel){val p by vm.profile.collectAsState();val rooms by vm.rooms.collectAsState();Column(Modifier.fillMaxSize()){Row(Modifier.fillMaxWidth().padding(16.dp),verticalAlignment=Alignment.CenterVertically){Column(Modifier.weight(1f)){Text(p?.display_name?:"مستخدم",fontSize=20.sp,fontWeight=FontWeight.Bold);Text("ID "+(p?.display_id?:"—")+" • 🪙 "+(p?.coins?:0),color=Gold)};IconButton(onClick=vm::profile){Icon(Icons.Default.Person,null)}};Text("الغرف الساخنة",fontSize=25.sp,fontWeight=FontWeight.Bold,modifier=Modifier.padding(horizontal=16.dp));LazyColumn(Modifier.weight(1f),contentPadding=PaddingValues(16.dp),verticalArrangement=Arrangement.spacedBy(12.dp)){items(rooms){room->RoomCard(room){vm.open(room)}}};NavigationBar(containerColor=Color(0xFF16072D)){NavigationBarItem(true,{vm.home()},icon={Icon(Icons.Default.Home,null)},label={Text("المنزل")});NavigationBarItem(false,{vm.store()},icon={Icon(Icons.Default.ShoppingCart,null)},label={Text("المتجر")});NavigationBarItem(false,{vm.profile()},icon={Icon(Icons.Default.Person,null)},label={Text("أنا")})}}}
-@Composable private fun RoomCard(room:Room,onClick:()->Unit){Card(Modifier.fillMaxWidth().clickable(onClick=onClick),shape=RoundedCornerShape(22.dp)){Row(Modifier.padding(14.dp),verticalAlignment=Alignment.CenterVertically){Box(Modifier.size(74.dp).background(Brush.radialGradient(listOf(Purple,Deep)),RoundedCornerShape(18.dp)),contentAlignment=Alignment.Center){Text("🎙️",fontSize=36.sp)};Spacer(Modifier.width(14.dp));Column(Modifier.weight(1f)){Text(room.title?:room.name,fontWeight=FontWeight.Bold,fontSize=18.sp);Text("غرفة صوتية • "+room.max_seats+" مقاعد",color=Color.LightGray)};Text("دخول",color=Gold,fontWeight=FontWeight.Bold)}}}
-@Composable private fun RoomScreen(vm:PartyViewModel,room:Room){val mic by vm.micEnabled.collectAsState();Column(Modifier.fillMaxSize()){Row(Modifier.fillMaxWidth().padding(16.dp),verticalAlignment=Alignment.CenterVertically){IconButton(onClick=vm::home){Icon(Icons.Default.ArrowBack,null)};Column(Modifier.weight(1f)){Text(room.title?:room.name,fontSize=20.sp,fontWeight=FontWeight.Bold);Text("Live room",color=Gold)};Icon(Icons.Default.MoreVert,null)};Box(Modifier.weight(1f).fillMaxWidth()){Column(Modifier.fillMaxSize().padding(20.dp),horizontalAlignment=Alignment.CenterHorizontally){Text("غرفة صوتية حقيقية",fontSize=24.sp,fontWeight=FontWeight.Bold);Text("LiveKit للصوت • Supabase للغرفة والبيانات",color=Color.LightGray);Spacer(Modifier.height(28.dp));LazyVerticalGrid(columns=GridCells.Fixed(3),verticalArrangement=Arrangement.spacedBy(18.dp),horizontalArrangement=Arrangement.spacedBy(18.dp)){items(room.max_seats){i->Box(Modifier.aspectRatio(1f).background(Color(0x552A1457),RoundedCornerShape(50.dp)),contentAlignment=Alignment.Center){Column(horizontalAlignment=Alignment.CenterHorizontally){Text("🎙️",fontSize=38.sp);Text((i+1).toString(),color=Color.LightGray)}}}}}}};Row(Modifier.fillMaxWidth().padding(18.dp),horizontalArrangement=Arrangement.SpaceEvenly){FilledTonalIconButton({}){Icon(Icons.Default.Chat,null)};FilledTonalIconButton({}){Icon(Icons.Default.CardGiftcard,null)};FilledIconButton(onClick=vm::toggleMic){Icon(if(mic) Icons.Default.Mic else Icons.Default.MicOff,null)};FilledTonalIconButton({}){Icon(Icons.Default.VolumeUp,null)}}}}
-@Composable private fun StoreScreen(vm:PartyViewModel){val items by vm.store.collectAsState();Column(Modifier.fillMaxSize()){Row(Modifier.padding(16.dp),verticalAlignment=Alignment.CenterVertically){IconButton(onClick=vm::home){Icon(Icons.Default.ArrowBack,null)};Text("المتجر",fontSize=26.sp,fontWeight=FontWeight.Bold)};LazyVerticalGrid(GridCells.Fixed(2),contentPadding=PaddingValues(16.dp),horizontalArrangement=Arrangement.spacedBy(12.dp),verticalArrangement=Arrangement.spacedBy(12.dp)){items(items){item->Card(shape=RoundedCornerShape(18.dp)){Column(Modifier.padding(14.dp),horizontalAlignment=Alignment.CenterHorizontally){Text(item.icon?:"✨",fontSize=50.sp);Text(item.name,fontWeight=FontWeight.Bold);Text(item.price_coins.toString()+" 🪙",color=Gold);Spacer(Modifier.height(8.dp));Button({}){Text("شراء")}}}}}}}
-@Composable private fun ProfileScreen(vm:PartyViewModel){val p by vm.profile.collectAsState();Column(Modifier.fillMaxSize().padding(20.dp)){IconButton(onClick=vm::home){Icon(Icons.Default.ArrowBack,null)};Spacer(Modifier.height(20.dp));Text("الملف الشخصي",fontSize=28.sp,fontWeight=FontWeight.Bold);Spacer(Modifier.height(20.dp));Card(shape=RoundedCornerShape(26.dp),modifier=Modifier.fillMaxWidth()){Column(Modifier.padding(22.dp)){Text(p?.display_name?:"مستخدم",fontSize=24.sp,fontWeight=FontWeight.Bold);Text("ID "+(p?.display_id?:"—"));Spacer(Modifier.height(12.dp));Text("🪙 "+(p?.coins?:0)+"   💎 "+(p?.diamonds?:0));Text("VIP "+(p?.vip_level?:0));Text("الدور: "+(p?.role_code?:"USER"))}}}}
+
+private val Purple = Color(0xFF6E2BD9)
+private val Deep = Color(0xFF0A0317)
+private val CardColor = Color(0xFF24104A)
+private val Gold = Color(0xFFFFD66B)
+
+@Composable
+fun PharaohPartyApp(vm: PartyViewModel) {
+    val screen by vm.screen.collectAsState()
+    val error by vm.error.collectAsState()
+    MaterialTheme(colorScheme = darkColorScheme(primary = Purple, background = Deep, surface = CardColor)) {
+        Box(Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(Color(0xFF30105C), Deep)))) {
+            when (val current = screen) {
+                Screen.Login -> LoginScreen(vm)
+                Screen.Home -> HomeScreen(vm)
+                is Screen.RoomScreen -> RoomScreen(vm, current.room)
+                Screen.Store -> StoreScreen(vm)
+                Screen.Profile -> ProfileScreen(vm)
+            }
+            error?.let { message ->
+                AlertDialog(
+                    onDismissRequest = vm::clearError,
+                    confirmButton = { TextButton(onClick = vm::clearError) { Text("حسناً") } },
+                    title = { Text("تنبيه") },
+                    text = { Text(message) }
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun LoginScreen(vm: PartyViewModel) {
+    var username by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
+    var create by remember { mutableStateOf(false) }
+
+    Column(
+        Modifier.fillMaxSize().padding(24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Text("♛", fontSize = 72.sp, color = Gold)
+        Text("فرعون بارتي", fontSize = 34.sp, fontWeight = FontWeight.Bold)
+        Text("غرف صوتية • هدايا • VIP • وكالات", color = Color.LightGray)
+        Spacer(Modifier.height(30.dp))
+        OutlinedTextField(
+            value = username,
+            onValueChange = { username = it },
+            label = { Text("اسم المستخدم") },
+            singleLine = true,
+            modifier = Modifier.fillMaxWidth()
+        )
+        Spacer(Modifier.height(10.dp))
+        OutlinedTextField(
+            value = password,
+            onValueChange = { password = it },
+            label = { Text("كلمة المرور") },
+            singleLine = true,
+            modifier = Modifier.fillMaxWidth()
+        )
+        Spacer(Modifier.height(16.dp))
+        Button(
+            onClick = { vm.login(username, password, create) },
+            enabled = username.length >= 3 && password.length >= 6,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text(if (create) "إنشاء الحساب" else "دخول")
+        }
+        TextButton(onClick = { create = !create }) {
+            Text(if (create) "لدي حساب بالفعل" else "إنشاء حساب جديد")
+        }
+        OutlinedButton(onClick = vm::quickLogin, modifier = Modifier.fillMaxWidth()) {
+            Text("دخول سريع — حساب واحد لهذا الجهاز")
+        }
+    }
+}
+
+@Composable
+private fun HomeScreen(vm: PartyViewModel) {
+    val profile by vm.profile.collectAsState()
+    val rooms by vm.rooms.collectAsState()
+
+    Column(Modifier.fillMaxSize()) {
+        Row(Modifier.fillMaxWidth().padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+            Column(Modifier.weight(1f)) {
+                Text(profile?.display_name ?: "مستخدم", fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                Text("ID @@{profile?.display_id ?: "—"} • 🪙 @@{profile?.coins ?: 0}", color = Gold)
+            }
+            IconButton(onClick = vm::profile) { Icon(Icons.Default.Person, null) }
+        }
+
+        Text("الغرف الساخنة", fontSize = 25.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(horizontal = 16.dp))
+
+        LazyColumn(
+            Modifier.weight(1f),
+            contentPadding = PaddingValues(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            items(rooms) { room -> RoomCard(room) { vm.open(room) } }
+        }
+
+        NavigationBar(containerColor = Color(0xFF16072D)) {
+            NavigationBarItem(true, vm::home, icon = { Icon(Icons.Default.Home, null) }, label = { Text("المنزل") })
+            NavigationBarItem(false, vm::store, icon = { Icon(Icons.Default.ShoppingCart, null) }, label = { Text("المتجر") })
+            NavigationBarItem(false, vm::profile, icon = { Icon(Icons.Default.Person, null) }, label = { Text("أنا") })
+        }
+    }
+}
+
+@Composable
+private fun RoomCard(room: Room, onClick: () -> Unit) {
+    Card(Modifier.fillMaxWidth().clickable(onClick = onClick), shape = RoundedCornerShape(22.dp)) {
+        Row(Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
+            Box(
+                Modifier.size(74.dp).background(
+                    Brush.radialGradient(listOf(Purple, Deep)),
+                    RoundedCornerShape(18.dp)
+                ),
+                contentAlignment = Alignment.Center
+            ) { Text("🎙️", fontSize = 36.sp) }
+
+            Spacer(Modifier.width(14.dp))
+
+            Column(Modifier.weight(1f)) {
+                Text(room.title ?: room.name, fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                Text("غرفة صوتية • @@{room.max_seats} مقاعد", color = Color.LightGray)
+            }
+            Text("دخول", color = Gold, fontWeight = FontWeight.Bold)
+        }
+    }
+}
+
+@Composable
+private fun RoomScreen(vm: PartyViewModel, room: Room) {
+    val mic by vm.micEnabled.collectAsState()
+
+    Column(Modifier.fillMaxSize()) {
+        Row(Modifier.fillMaxWidth().padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+            IconButton(onClick = vm::home) { Icon(Icons.Default.ArrowBack, null) }
+            Column(Modifier.weight(1f)) {
+                Text(room.title ?: room.name, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                Text("غرفة صوتية مباشرة", color = Gold)
+            }
+            Icon(Icons.Default.MoreVert, null)
+        }
+
+        Column(
+            Modifier.weight(1f).fillMaxWidth().padding(20.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text("غرفة صوتية حقيقية", fontSize = 24.sp, fontWeight = FontWeight.Bold)
+            Text("LiveKit للصوت • Supabase للغرفة والبيانات", color = Color.LightGray)
+            Spacer(Modifier.height(28.dp))
+
+            LazyVerticalGrid(
+                columns = GridCells.Fixed(3),
+                verticalArrangement = Arrangement.spacedBy(18.dp),
+                horizontalArrangement = Arrangement.spacedBy(18.dp)
+            ) {
+                items((0 until room.max_seats).toList()) { index ->
+                    Box(
+                        Modifier.aspectRatio(1f).background(
+                            Color(0x552A1457),
+                            RoundedCornerShape(50.dp)
+                        ),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text("🎙️", fontSize = 38.sp)
+                            Text("@@{index + 1}", color = Color.LightGray)
+                        }
+                    }
+                }
+            }
+        }
+
+        Row(
+            Modifier.fillMaxWidth().padding(18.dp),
+            horizontalArrangement = Arrangement.SpaceEvenly
+        ) {
+            FilledTonalIconButton(onClick = {}) { Icon(Icons.Default.Chat, null) }
+            FilledTonalIconButton(onClick = {}) { Icon(Icons.Default.CardGiftcard, null) }
+            FilledIconButton(onClick = vm::toggleMic) {
+                Icon(if (mic) Icons.Default.Mic else Icons.Default.MicOff, null)
+            }
+            FilledTonalIconButton(onClick = {}) { Icon(Icons.Default.VolumeUp, null) }
+        }
+    }
+}
+
+@Composable
+private fun StoreScreen(vm: PartyViewModel) {
+    val storeItems by vm.store.collectAsState()
+
+    Column(Modifier.fillMaxSize()) {
+        Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+            IconButton(onClick = vm::home) { Icon(Icons.Default.ArrowBack, null) }
+            Text("المتجر", fontSize = 26.sp, fontWeight = FontWeight.Bold)
+        }
+
+        LazyVerticalGrid(
+            GridCells.Fixed(2),
+            contentPadding = PaddingValues(16.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            items(storeItems) { item ->
+                Card(shape = RoundedCornerShape(18.dp)) {
+                    Column(
+                        Modifier.padding(14.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(item.icon ?: "✨", fontSize = 50.sp)
+                        Text(item.name, fontWeight = FontWeight.Bold)
+                        Text("@@{item.price_coins} 🪙", color = Gold)
+                        Spacer(Modifier.height(8.dp))
+                        Button(onClick = {}) { Text("شراء") }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun ProfileScreen(vm: PartyViewModel) {
+    val profile by vm.profile.collectAsState()
+
+    Column(Modifier.fillMaxSize().padding(20.dp)) {
+        IconButton(onClick = vm::home) { Icon(Icons.Default.ArrowBack, null) }
+        Spacer(Modifier.height(20.dp))
+        Text("الملف الشخصي", fontSize = 28.sp, fontWeight = FontWeight.Bold)
+        Spacer(Modifier.height(20.dp))
+
+        Card(shape = RoundedCornerShape(26.dp), modifier = Modifier.fillMaxWidth()) {
+            Column(Modifier.padding(22.dp)) {
+                Text(profile?.display_name ?: "مستخدم", fontSize = 24.sp, fontWeight = FontWeight.Bold)
+                Text("ID @@{profile?.display_id ?: "—"}")
+                Spacer(Modifier.height(12.dp))
+                Text("🪙 @@{profile?.coins ?: 0}   💎 @@{profile?.diamonds ?: 0}")
+                Text("VIP @@{profile?.vip_level ?: 0}")
+                Text("الدور: @@{profile?.role_code ?: "USER"}")
+            }
+        }
+    }
+}

@@ -169,7 +169,7 @@ private fun RoomScreen(vm: PartyViewModel, room: Room) {
             Modifier.weight(1f).fillMaxWidth().padding(20.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text("غرفة صوتية حقيقية", fontSize = 24.sp, fontWeight = FontWeight.Bold)
+            Text("غرفة صوتية مباشرة", fontSize = 24.sp, fontWeight = FontWeight.Bold)
             Text("LiveKit للصوت • Supabase للغرفة والبيانات", color = Color.LightGray)
             Spacer(Modifier.height(28.dp))
 
@@ -199,8 +199,8 @@ private fun RoomScreen(vm: PartyViewModel, room: Room) {
             Modifier.fillMaxWidth().padding(18.dp),
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
-            FilledTonalIconButton(onClick = {}) { Icon(Icons.Default.Chat, null) }
-            FilledTonalIconButton(onClick = {}) { Icon(Icons.Default.CardGiftcard, null) }
+            FilledTonalIconButton(onClick = { vm.refresh() }) { Icon(Icons.Default.Chat, null) }
+            FilledTonalIconButton(onClick = { vm.refresh() }) { Icon(Icons.Default.CardGiftcard, null) }
             FilledIconButton(onClick = vm::toggleMic) {
                 Icon(if (mic) Icons.Default.Mic else Icons.Default.MicOff, null)
             }
@@ -235,7 +235,7 @@ private fun StoreScreen(vm: PartyViewModel) {
                         Text(item.name, fontWeight = FontWeight.Bold)
                         Text("${item.price_coins} 🪙", color = Gold)
                         Spacer(Modifier.height(8.dp))
-                        Button(onClick = {}) { Text("شراء") }
+                        Button(onClick = { vm.buy(item.id) }) { Text("شراء") }
                     }
                 }
             }

@@ -110,6 +110,7 @@ class PartyViewModel(app: Application) : AndroidViewModel(app) {
             runCatching {
                 _rooms.value = api.rooms()
                 _store.value = api.store()
+                _gifts.value = api.gifts()
             }.onFailure {
                 _error.value = it.message
             }
@@ -120,7 +121,16 @@ class PartyViewModel(app: Application) : AndroidViewModel(app) {
         _screen.value = Screen.RoomScreen(room)
         viewModelScope.launch {
             runCatching {
-                api.joinRoom(room.id)
+                val seats = api.seats(room.id)
+                _seats.value = seats
+                val own = seats.firstOrNull { it.user_id == api.userId }
+                if (own == null) {
+                    val free = seats.firstOrNull { it.user_id == null && !it.locked }
+                    if (free == null) error("لا يوجد مقعد متاح في هذه الغرفة")
+                    api.joinRoom(room.id, free.seat_no)
+                }
+                _seats.value = api.seats(room.id)
+                _messages.value = api.messages(room.id)
                 liveKit.connect(api, room.id)
                 _micEnabled.value =
                     liveKit.room?.localParticipant?.setMicrophoneEnabled(true) == true
@@ -129,6 +139,10 @@ class PartyViewModel(app: Application) : AndroidViewModel(app) {
                 _screen.value = Screen.Home
             }
         }
+    }
+
+    fun claimSeat(roomId: String, seatNo: Int) {
+        viewModelScope.launch { runCatching { api.claimSeat(roomId, seatNo); _seats.value = api.seats(roomId) }.onFailure { _error.value = it.message } }
     }
 
     fun sendMessage(roomId: String, message: String) {
@@ -203,6 +217,10 @@ class PartyViewModel(app: Application) : AndroidViewModel(app) {
 
     fun profile() {
         _screen.value = Screen.Profile
+    }
+
+    fun logout() {
+        viewModelScope.launch { liveKit.disconnect(); api.logout(); _profile.value = null; _rooms.value = emptyList(); _screen.value = Screen.Login }
     }
 
     fun clearError() {

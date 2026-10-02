@@ -8,7 +8,6 @@ plugins {
 android {
     namespace = "com.pharaohparty.app"
     compileSdk = 37
-
     defaultConfig {
         applicationId = "com.pharaohparty.app"
         minSdk = 26
@@ -16,24 +15,16 @@ android {
         versionCode = 1
         versionName = "1.0.0"
     }
-
     buildFeatures { compose = true; buildConfig = true }
-
-    buildTypes {
-        release {
-            isMinifyEnabled = false
-            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
-        }
-    }
-
-    buildConfigField("String", "SUPABASE_URL", ""https://fdvgpdfesvigtvmzjhnt.supabase.co"")
-    buildConfigField("String", "SUPABASE_KEY", ""sb_publishable_gW5LE2T9Y6rfv63DMHnYew_64sa1cOL"")
-    buildConfigField("String", "AUTH_FUNCTION", ""pharaoh-auth"")
-    buildConfigField("String", "LIVEKIT_TOKEN_FUNCTION", ""livekit-token"")
+    buildTypes { release { isMinifyEnabled = false; proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro") } }
+    buildConfigField("String", "SUPABASE_URL", "\"https://fdvgpdfesvigtvmzjhnt.supabase.co\"")
+    buildConfigField("String", "SUPABASE_KEY", "\"sb_publishable_gW5LE2T9Y6rfv63DMHnYew_64sa1cOL\"")
+    buildConfigField("String", "AUTH_FUNCTION", "\"pharaoh-auth\"")
+    buildConfigField("String", "LIVEKIT_TOKEN_FUNCTION", "\"livekit-token\"")
 }
 
 dependencies {
-    implementation(platform("androidx.compose:compose-bom:2026.09.01"))
+    implementation(platform("androidx.compose:compose-bom:2026.09.00"))
     implementation("androidx.activity:activity-compose:1.12.0")
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.ui:ui-tooling-preview")

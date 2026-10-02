@@ -38,6 +38,4 @@ dependencies {
     implementation("io.ktor:ktor-client-content-negotiation:3.3.1")
     implementation("io.ktor:ktor-serialization-kotlinx-json:3.3.1")
     implementation("io.livekit:livekit-android:2.29.0")
-    implementation("io.github.jan-tennert.supabase:bom:3.5.0")
-    implementation("io.github.jan-tennert.supabase:realtime-kt")
 }

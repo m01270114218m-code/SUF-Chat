@@ -212,7 +212,7 @@ fun RoomScreen(
             Column(modifier = Modifier.fillMaxSize()) {
                 RoomTopBar(
                     roomName = state.room?.name ?: "غرفة صوتية",
-                    listeners = state.room?.listeners ?: 0,
+                    listeners = state.room?.listeners?.toLong() ?: 0L,
                     peerCount = peerCount,
                     isLocked = state.room?.isLocked == true,
                     isAdmin = isAdmin,

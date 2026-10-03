@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">غرف صوتية</string>
+
+    <!-- Auth -->
+    <string name="login">تسجيل الدخول</string>
+    <string name="register">إنشاء حساب</string>
+    <string name="email">البريد الإلكتروني</string>
+    <string name="password">كلمة المرور</string>
+    <string name="username">اسم المستخدم</string>
+    <string name="display_name">الاسم الظاهر</string>
+    <string name="forgot_password">نسيت كلمة المرور؟</string>
+    <string name="no_account">ليس لديك حساب؟ إنشاء حساب</string>
+    <string name="have_account">لديك حساب؟ تسجيل الدخول</string>
+    <string name="logout">تسجيل الخروج</string>
+
+    <!-- Home -->
+    <string name="home">الرئيسية</string>
+    <string name="explore">استكشف</string>
+    <string name="messages">الرسائل</string>
+    <string name="profile">حسابي</string>
+    <string name="search">بحث</string>
+    <string name="create_room">إنشاء غرفة</string>
+    <string name="listeners">مستمع</string>
+
+    <!-- Room -->
+    <string name="room">الغرفة</string>
+    <string name="leave">مغادرة</string>
+    <string name="mute">كتم</string>
+    <string name="unmute">إلغاء الكتم</string>
+    <string name="raise_hand">رفع اليد</string>
+    <string name="gift">إهداء</string>
+    <string name="settings">الإعدادات</string>
+    <string name="available_seat">مقعد متاح</string>
+    <string name="type_message">اكتب رسالة…</string>
+    <string name="send">إرسال</string>
+    <string name="admin">مشرف</string>
+    <string name="owner">مالك</string>
+    <string name="moderator">مشرف عام</string>
+
+    <!-- Profile -->
+    <string name="edit_profile">تعديل الملف الشخصي</string>
+    <string name="friends">الأصدقاء</string>
+    <string name="gifts">الهدايا</string>
+    <string name="privacy">الخصوصية</string>
+    <string name="wallet">المحفظة</string>
+    <string name="followers">متابع</string>
+    <string name="following">يتابع</string>
+    <string name="coins">العملات</string>
+    <string name="diamonds">الألماس</string>
+    <string name="level">المستوى</string>
+    <string name="agency">الوكالة</string>
+
+    <!-- Common -->
+    <string name="ok">موافق</string>
+    <string name="cancel">إلغاء</string>
+    <string name="save">حفظ</string>
+    <string name="delete">حذف</string>
+    <string name="loading">جارٍ التحميل…</string>
+    <string name="retry">إعادة المحاولة</string>
+    <string name="error">حدث خطأ</string>
+</resources>

@@ -7,6 +7,7 @@ import com.voicerooms.app.util.ApiResult
 import com.voicerooms.app.util.runCatchingApi
 import com.voicerooms.app.util.translateError
 import io.github.jan.supabase.postgrest.from
+import io.github.jan.supabase.postgrest.rpc
 import io.github.jan.supabase.postgrest.query.Columns
 import io.github.jan.supabase.postgrest.query.Order
 import kotlinx.serialization.json.buildJsonObject
@@ -30,7 +31,7 @@ class GiftRepository {
         roomId: String,
         receiverId: String,
         giftId: Int,
-        amount: Int = 1,
+        amount: Long = 1L,
     ): ApiResult<Unit> = runCatchingApi {
         db.rpc(
             "send_gift",

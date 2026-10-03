@@ -52,7 +52,7 @@ fun SvgaPlayer(
                     ViewGroup.LayoutParams.MATCH_PARENT,
                 )
                 isClickable = false
-                setLoops(loops)
+                this.loops = loops
             }
         },
         update = { view ->

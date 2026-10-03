@@ -52,7 +52,7 @@ class GiftRepository {
             ) {
                 filter { eq("room_id", roomId) }
                 order("created_at", Order.DESCENDING)
-                limit(limit)
+                limit(limit.toLong())
             }.decodeList<GiftTransaction>()
         }.mapError()
 

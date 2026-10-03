@@ -1,9 +1,8 @@
-name: Extract VoiceRooms ZIP
+name: Flatten VoiceRooms ZIP into project root
 
 on:
   push:
     paths:
-      - "_workspace_VoiceRooms-Android.zip"
       - ".github/workflows/extract-voice-rooms.yml"
   workflow_dispatch:
 
@@ -11,36 +10,27 @@ permissions:
   contents: write
 
 jobs:
-  extract:
-    if: ${{ !startsWith(github.event.head_commit.message, 'Extract VoiceRooms ZIP') }}
+  flatten:
+    if: ${{ !startsWith(github.event.head_commit.message, 'Flatten VoiceRooms ZIP') }}
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-
-      - name: Extract archive
+      - name: Replace project root with ZIP project contents
         shell: bash
         run: |
           set -e
+          rm -rf /tmp/voice-rooms
           mkdir -p /tmp/voice-rooms
           unzip -q -o "_workspace_VoiceRooms-Android.zip" -d /tmp/voice-rooms
+          test -d /tmp/voice-rooms/VoiceRooms
           find . -mindepth 1 -maxdepth 1 ! -name '.git' ! -name '_workspace_VoiceRooms-Android.zip' ! -name '.github' -exec rm -rf {} +
-          cp -a /tmp/voice-rooms/. .
-          git status --short
-
-      - name: Commit extracted project
-        shell: bash
-        run: |
-          set -e
+          cp -a /tmp/voice-rooms/VoiceRooms/. .
+          rm -f .github/workflows/extract-voice-rooms.yml
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A
           git reset -- "_workspace_VoiceRooms-Android.zip"
-          if git diff --cached --quiet; then
-            echo "No extracted changes."
-            exit 0
-          fi
-          git commit -m "Extract VoiceRooms ZIP into main project"
+          git commit -m "Flatten VoiceRooms ZIP into project root"
           git push origin HEAD:main

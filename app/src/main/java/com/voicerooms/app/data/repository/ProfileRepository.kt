@@ -13,6 +13,8 @@ import io.github.jan.supabase.postgrest.query.Order
 import io.github.jan.supabase.storage.storage
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.put
 
 /**
  * مستودع الملف الشخصي — التحديث، رفع الصورة، المتابعة، المحفظة.
@@ -30,10 +32,10 @@ class ProfileRepository {
 
     suspend fun setOnline(userId: String, online: Boolean): ApiResult<Unit> = runCatchingApi {
         db.from("profiles").update(
-            mapOf(
-                "is_online" to online,
-                "last_seen" to "now()"
-            )
+            buildJsonObject {
+                put("is_online", online)
+                put("last_seen", "now()")
+            }
         ) { filter { eq("id", userId) } }
         Unit
     }.mapError()
@@ -49,14 +51,18 @@ class ProfileRepository {
             bucket.publicUrl(path)
         }.mapError()
 
-    suspend fun getProfile(userId: String): ApiResult<Profile> = runCatchingApi { db.from("profiles").select { filter { eq("id", userId) } }.decodeSingle<Profile>() }.mapError()
+    suspend fun getProfile(userId: String): ApiResult<Profile> = runCatchingApi {
+        db.from("profiles").select { filter { eq("id", userId) } }.decodeSingle<Profile>()
+    }.mapError()
 
     suspend fun getFollowersCount(userId: String): Int = runCatchingApi {
-        db.from("follows").select { filter { eq("following_id", userId) } }.decodeList<Map<String, String>>().size
+        db.from("follows").select { filter { eq("following_id", userId) } }
+            .decodeList<Map<String, String>>().size
     }.let { if (it is ApiResult.Success) it.data else 0 }
 
     suspend fun getFollowingCount(userId: String): Int = runCatchingApi {
-        db.from("follows").select { filter { eq("follower_id", userId) } }.decodeList<Map<String, String>>().size
+        db.from("follows").select { filter { eq("follower_id", userId) } }
+            .decodeList<Map<String, String>>().size
     }.let { if (it is ApiResult.Success) it.data else 0 }
 
     suspend fun isFollowing(followerId: String, followingId: String): Boolean = runCatchingApi {
@@ -84,7 +90,10 @@ class ProfileRepository {
     }.mapError()
 
     suspend fun recharge(userId: String, amount: Long): ApiResult<Unit> = runCatchingApi {
-        db.rpc("recharge_coins", mapOf("p_user_id" to userId, "p_amount" to amount))
+        db.rpc("recharge_coins", buildJsonObject {
+            put("p_user_id", userId)
+            put("p_amount", amount)
+        })
         Unit
     }.mapError()
 

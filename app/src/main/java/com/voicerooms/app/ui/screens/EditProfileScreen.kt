@@ -139,9 +139,9 @@ fun EditProfileScreen(onBack: () -> Unit) {
                 Text("الجنس", color = TextSecondary, fontSize = 13.sp)
                 Spacer(Modifier.height(8.dp))
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Pill("ذكر", gender == "male") { gender = "male" }
-                    Pill("أنثى", gender == "female") { gender = "female" }
-                    Pill("آخر", gender == "other") { gender = "other" }
+                    Pill("ذكر", gender == "male", onClick = { gender = "male" })
+                    Pill("أنثى", gender == "female", onClick = { gender = "female" })
+                    Pill("آخر", gender == "other", onClick = { gender = "other" })
                 }
 
                 Spacer(Modifier.height(28.dp))

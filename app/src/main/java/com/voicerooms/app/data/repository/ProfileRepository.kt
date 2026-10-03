@@ -7,6 +7,7 @@ import com.voicerooms.app.util.ApiResult
 import com.voicerooms.app.util.runCatchingApi
 import com.voicerooms.app.util.translateError
 import io.github.jan.supabase.postgrest.from
+import io.github.jan.supabase.postgrest.rpc
 import io.github.jan.supabase.postgrest.query.Columns
 import io.github.jan.supabase.postgrest.query.Order
 import io.github.jan.supabase.storage.storage
@@ -43,10 +44,12 @@ class ProfileRepository {
             val path = "$userId/avatar.$ext"
             val bucket = SupabaseProvider.storage.from("avatars")
             withContext(Dispatchers.IO) {
-                bucket.upload(path, bytes) { upsert = true }
+                bucket.upload(path, bytes, upsert = true)
             }
             bucket.publicUrl(path)
         }.mapError()
+
+    suspend fun getProfile(userId: String): ApiResult<Profile> = runCatchingApi { db.from("profiles").select { filter { eq("id", userId) } }.decodeSingle<Profile>() }.mapError()
 
     suspend fun getFollowersCount(userId: String): Int = runCatchingApi {
         db.from("follows").select { filter { eq("following_id", userId) } }.decodeList<Map<String, String>>().size

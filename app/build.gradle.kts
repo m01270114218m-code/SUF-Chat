@@ -18,8 +18,8 @@ android {
         vectorDrawables { useSupportLibrary = true }
 
         // ====== ضع بيانات Supabase هنا أو في local.properties ======
-        buildConfigField("String", "SUPABASE_URL", "\"https://YOUR-PROJECT.supabase.co\"")
-        buildConfigField("String", "SUPABASE_ANON_KEY", "\"YOUR-ANON-KEY\"")
+        buildConfigField("String", "SUPABASE_URL", "\"https://fdvgpdfesvigtvmzjhnt.supabase.co\"")
+        buildConfigField("String", "SUPABASE_ANON_KEY", "\"sb_publishable_gW5LE2T9Y6rfv63DMHnYew_64sa1cOL\"")
     }
 
     buildTypes {

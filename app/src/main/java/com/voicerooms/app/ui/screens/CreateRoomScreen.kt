@@ -97,7 +97,7 @@ fun CreateRoomScreen(onBack: () -> Unit, onCreated: (String) -> Unit) {
                 ) {
                     items(state.categories.size) { index ->
                         val cat = state.categories[index]
-                        Pill(cat.name, categoryId == cat.id) { categoryId = cat.id }
+                        Pill(cat.name, categoryId == cat.id, onClick = { categoryId = cat.id })
                     }
                 }
 
@@ -105,8 +105,8 @@ fun CreateRoomScreen(onBack: () -> Unit, onCreated: (String) -> Unit) {
                 Text("نوع الغرفة", color = TextSecondary, fontSize = 13.sp)
                 Spacer(Modifier.height(8.dp))
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Pill("عامة", roomType == "public") { roomType = "public" }
-                    Pill("خاصة (بكلمة سر)", roomType == "private") { roomType = "private" }
+                    Pill("عامة", roomType == "public", onClick = { roomType = "public" })
+                    Pill("خاصة (بكلمة سر)", roomType == "private", onClick = { roomType = "private" })
                 }
 
                 Spacer(Modifier.height(18.dp))

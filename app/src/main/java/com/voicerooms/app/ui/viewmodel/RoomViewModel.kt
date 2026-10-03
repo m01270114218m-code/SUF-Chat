@@ -164,7 +164,7 @@ class RoomViewModel(
                         activeGiftSender = _state.value.myUserId,
                     )
                     // تحديث رصيد المستخدم
-                    (profileRepo.getProfile(_state.value.myUserId) as? ApiResult.Success)
+                    profileRepo.getProfile(_state.value.myUserId)
                 }
             }
         }

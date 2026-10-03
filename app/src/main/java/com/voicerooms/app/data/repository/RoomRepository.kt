@@ -9,6 +9,7 @@ import com.voicerooms.app.util.ApiResult
 import com.voicerooms.app.util.runCatchingApi
 import com.voicerooms.app.util.translateError
 import io.github.jan.supabase.postgrest.from
+import io.github.jan.supabase.postgrest.rpc
 import io.github.jan.supabase.postgrest.query.Columns
 import io.github.jan.supabase.postgrest.query.Order
 import kotlinx.serialization.json.JsonObject
@@ -216,7 +217,7 @@ class RoomRepository {
         db.from("room_messages").select(Columns.raw("*, profile:profiles(*)")) {
             filter { eq("room_id", roomId) }
             order("created_at", Order.DESCENDING)
-            limit(limit)
+            limit(limit.toLong())
         }.decodeList<RoomMessage>().reversed()
     }.mapError()
 

@@ -1,0 +1,46 @@
+name: Extract VoiceRooms ZIP
+
+on:
+  push:
+    paths:
+      - "_workspace_VoiceRooms-Android.zip"
+      - ".github/workflows/extract-voice-rooms.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  extract:
+    if: ${{ !startsWith(github.event.head_commit.message, 'Extract VoiceRooms ZIP') }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Extract archive
+        shell: bash
+        run: |
+          set -e
+          mkdir -p /tmp/voice-rooms
+          unzip -q -o "_workspace_VoiceRooms-Android.zip" -d /tmp/voice-rooms
+          find . -mindepth 1 -maxdepth 1 ! -name '.git' ! -name '_workspace_VoiceRooms-Android.zip' ! -name '.github' -exec rm -rf {} +
+          cp -a /tmp/voice-rooms/. .
+          git status --short
+
+      - name: Commit extracted project
+        shell: bash
+        run: |
+          set -e
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git reset -- "_workspace_VoiceRooms-Android.zip"
+          if git diff --cached --quiet; then
+            echo "No extracted changes."
+            exit 0
+          fi
+          git commit -m "Extract VoiceRooms ZIP into main project"
+          git push origin HEAD:main
